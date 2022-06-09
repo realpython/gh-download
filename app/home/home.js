@@ -9,7 +9,6 @@ var homeModule = angular.module('homeModule', [
     'downGitModule',
 ]);
 
-
 function getReferrer() {
         var preUrl = document.referrer;
         document.getElementById("backLink").href=preUrl; 
