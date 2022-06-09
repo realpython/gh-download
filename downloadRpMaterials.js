@@ -28,27 +28,6 @@ const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
 const RP_MATERIALS_REPO = "realpython/materials";
 const BRANCH = "master";
 
-//
-
-function zip() {
-  var zip = new JSZip();
-
-  // Add an top-level, arbitrary text file with contents
-  zip.file("Hello.txt", "Hello World\n");
-
-  // Generate a directory within the Zip file structure
-  var img = zip.folder("images");
-
-  // Add a file to the directory, in this case an image with data URI as contents
-  img.file("smile.gif", imgData, { base64: true });
-
-  // Generate the zip file asynchronously
-  zip.generateAsync({ type: "blob" }).then(function (content) {
-    // Force down of the Zip file
-    saveAs(content, "archive.zip");
-  });
-}
-
 /**
  * Create the initial query URL.
  * @param {string} folderName
