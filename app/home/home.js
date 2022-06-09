@@ -9,6 +9,15 @@ var homeModule = angular.module('homeModule', [
     'downGitModule',
 ]);
 
+
+function getReferrer() {
+        var preUrl = document.referrer;
+        if (preUrl == null)
+                return "The previous page url is empty";
+        else
+                return preUrl;
+}
+
 homeModule.config([
     '$routeProvider',
 
