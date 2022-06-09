@@ -12,10 +12,8 @@ var homeModule = angular.module('homeModule', [
 
 function getReferrer() {
         var preUrl = document.referrer;
-        if (preUrl == null)
-                return "The previous page url is empty";
-        else
-                return preUrl;
+        document.getElementById("backLink").href=preUrl; 
+        return false;
 }
 
 homeModule.config([
