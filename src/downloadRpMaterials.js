@@ -97,22 +97,13 @@ function buildZipFromFolderStructure(folderStructure, zip = null) {
  * Fetch folder from repository, build a ZIP archive and download it.
  * @param {string} folderName
  */
-async function downloadMaterials(folderName) {
+export async function downloadMaterials(folderName) {
   const url = createURL(folderName);
-  try {
-    const resp = await getFolderStructure(url);
-    buildZipFromFolderStructure(resp)
-      .generateAsync({ type: "blob" })
-      .then(function (content) {
-        saveAs(content, folderName + ".zip");
-      });
-  } catch (e) {
-    console.log("Looks like that folder doesn't exist");
-  }
-}
 
-function getUrlParamsAndDownload() {
-  downloadMaterials(window.location.search.slice(1));
+  const resp = await getFolderStructure(url);
+  buildZipFromFolderStructure(resp)
+    .generateAsync({ type: "blob" })
+    .then(function (content) {
+      saveAs(content, folderName + ".zip");
+    });
 }
-
-window.onload = getUrlParamsAndDownload;
