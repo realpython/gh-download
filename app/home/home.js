@@ -38,7 +38,7 @@ homeModule.config([
 
                     var templateUrl = "https?://github.com/.+/.+";
                     var downloadUrlInfix = "#/home?url=";
-                    var downloadUrlPrefix = "https://devcademy.github.io/DownGit/"+downloadUrlInfix;
+                    var downloadUrlPrefix = "https://realpython.github.io/gh-download/"+downloadUrlInfix;
 
                     if ($routeParams.url) {
                         $scope.url = $routeParams.url;
