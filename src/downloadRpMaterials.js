@@ -23,6 +23,7 @@
  *
  */
 
+// https://api.github.com/repos/realpython/materials/contents/arcade-platformer?ref=master
 const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
 /** The user/repo address of the repository on GitHub*/
 const RP_MATERIALS_REPO = "realpython/materials";
@@ -83,7 +84,7 @@ function buildZipFromFolderStructure(folderStructure, zip = null) {
 
   Object.entries(folderStructure).forEach(([key, value]) => {
     if (value instanceof ArrayBuffer) {
-      zip.file(key, value, (createFolders = false));
+      zip.file(key, value);
     } else {
       zip.folder(key);
       buildZipFromFolderStructure(value, zip.folder(key));
