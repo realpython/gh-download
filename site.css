@@ -96,6 +96,7 @@ img {
 
 .note {
   margin: auto;
+  margin-top: 1em;
   text-align: justify;
   margin-bottom: 1em;
   background-color: #FF7E73;
