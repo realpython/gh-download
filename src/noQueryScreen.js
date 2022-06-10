@@ -12,12 +12,7 @@ export function noQueryScreen() {
   sourceCodeButton.innerText = "Browse the Materials Repository";
 
   const newNote = document.createElement("p");
-  newNote.innerText = `Oops! If you are seeing this it means that you \
-    either reached this page from somewhere you werent \
-    meant to, or you've used up your download quota for the day.
-    
-    Don't worry, you can still download the files from the repository directly \
-    click below.`;
+  newNote.innerText = `Something went wrong...`;
   newNote.classList.add("note");
 
   document
