@@ -9,7 +9,7 @@ export function noQueryScreen() {
   sourceCodeButton.addEventListener("click", () => {
     location.href = GITHUB_ROOT;
   });
-  sourceCodeButton.innerText = "Browse the Materials Repository";
+  // sourceCodeButton.innerText = "Browse the Source Code";
 
   const newNote = document.createElement("p");
   newNote.innerText = `Something went wrong...`;
