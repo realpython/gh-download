@@ -16,8 +16,10 @@ export function noQueryScreen() {
   newNote.classList.add("note");
 
   document
-    .querySelector(".main-container")
-    .insertBefore(newNote, sourceCodeButton);
+    // .querySelector(".main-container")
+    .querySelector(".logo")
+    // .insertAdjacentElement(newNote, sourceCodeButton);
+    .insertAdjacentElement("afterend", newNote);
 
   document.getElementById("back-to-rp").addEventListener("click", () => {
     location.href = RP_HOME;
