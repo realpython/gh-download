@@ -17,7 +17,7 @@ export function noQueryScreen() {
 
   document
     // .querySelector(".main-container")
-    .querySelector(".logo")
+    .querySelector("#logo")
     // .insertAdjacentElement(newNote, sourceCodeButton);
     .insertAdjacentElement("afterend", newNote);
 
