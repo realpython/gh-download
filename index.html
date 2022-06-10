@@ -1,52 +1,40 @@
 <!DOCTYPE html>
 <html ng-app="RealPython Materials Downloader">
-
-<head>
-
-  <meta charset="utf-8" />
-  <meta name="keywords"
-    content="GitHub Directory Link, GitHub Directory, Github Link, GitHub Directory Download, GitHub, Download" />
-  <meta name="description" content="Download RealPython Tutorial Materials" />
-  <meta name="author" content="RealPython" />
-
-
-  <title>RP Materials Downloader</title>
-  <link href="https://cdn.realpython.com/static/favicon.68cbf4197b0c.png" rel="icon">
-
-
-  <link href="site.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-  <script defer src="src/index.js" type="module"></script>
-</head>
-
-<body>
- <div class="main-container">
-  <h1>Materials Downloader</h1>
-  <img src="https://files.realpython.com/media/realpython-primary-logo.c88c8ebecac9.png" />
-  
-  <p>Fetch source code for Real Python tutorials</p>
-
-  <button id="download" class="no-folder-hide">Download</button>
-  <p class="subtitle no-folder-hide">Click here if your download hasn't started automatically.</p>
-  <p class="no-folder-hide">or</p>
-  <button id="src-code">Browse the Source Code</button>
-  <button id="back-to-rp">Visit RealPython.com</button>
-
-
-
- 
-
-
-  <!-- <div class="vertical-space"></div>
-      <p>Your download should start shortly. If it doesn't, click on the button below:</p>
-
-      <div class="btn-group center-row">
-        <button type="button" class="btn btn-default" ng-click="download()">Download</button>
-      </div> -->
-
- </div>
-
-</body>
-
+    <head>
+        <meta charset="utf-8" />
+        <meta name="keywords"
+              content="GitHub Directory Link, GitHub Directory, Github Link, GitHub Directory Download, GitHub, Download"/>
+        <meta name="description" content="Download RealPython Tutorial Materials" />
+        <meta name="author" content="RealPython" />
+        <title>RP Materials Downloader</title>
+        <link href="https://cdn.realpython.com/static/favicon.68cbf4197b0c.png"
+              rel="icon">
+        <link href="site.css" rel="stylesheet" />
+        <link rel="stylesheet" href="font-awesome/css/font-awesome.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+        <script defer src="src/index.js" type="module"></script>
+    </head>
+    <body>
+        <div class="main-container">
+            <h1>Source Code Downloader</h1>
+            <img src="https://files.realpython.com/media/realpython-primary-logo.c88c8ebecac9.png"/>
+            <p>
+                Fetch source code for Real Python tutorials
+            </p>
+            <button id="download" class="no-folder-hide">Download</button>
+            <p class="subtitle no-folder-hide">
+                Click here if your download hasn't started automatically.
+            </p>
+            <p class="no-folder-hide">
+                or
+            </p>
+            <button id="src-code">Browse the Source Code</button>
+            <button id="back-to-rp">Visit realpython.com</button>
+            <p class="text-left py-3 my-0 small">
+                <a href="https://support.realpython.com/contact/"
+                   target="_blank"><i aria-hidden="true" class="fa fa-commenting-o"></i> Contact Support</a>
+            </p>
+        </div>
+    </body>
 </html>
