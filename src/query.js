@@ -12,19 +12,18 @@ export const QUERY_TYPES = {
   // https://github.com/rahmonov/alcazar
   REPO: "REPO",
 
-  // https://github.com/realpython/materials/tree/master/python-yaml
-  // https://github.com/realpython/materials/tree/7010df1c142cefe717be3ccb406b914b7cd5677e/web-scraping-bs4
+  // https://github.com/[USER]/[REPO]/tree/[SHA_OR_BRANCH]/[OPTIONAL_PATH_TO_SUBDIR]
+  // SUBDIR can also be the root folder but at a branch or commit other than master/main
   SUBDIR: "SUBDIR",
 
-  // https://github.com/realpython/dockerizing-django/archive/master.zip
+  // https://github.com/[USER]/[REPO]/archive/master.zip
+  // TODO - check this for "main"
   ZIP: "ZIP",
 
-  // https://github.com/realpython/materials/blob/master/python-eval-mathrepl/mathrepl.py
-  // TODO Also with arbitrary branch
+  // https://github.com/[USER]/[REPO]/blob/[SHA_OR_BRANCH]/[PATH_TO_FILE]
   FILE: "FILE",
 
-  // generator
-  // dwitter
+  // [FOLDER_IN_MATERIALS_REPO]
   WORD: "WORD",
 };
 
@@ -73,80 +72,89 @@ export function classifyQuery(decodedQuery) {
   }
 }
 
-export function buildFileUrl(classifiedQuery) {
-  // https://github.com/realpython/materials/blob/master/python-eval-mathrepl/mathrepl.py
-  // https://raw.githubusercontent.com/realpython/materials/master/python-eval-mathrepl/mathrepl.py
-
-  const url = new URL(decodedQuery);
-  const path = url.pathname.split("/").slice(1);
+/**
+ * Converts main GitHub repository URL to direct link to ZIP archive of master branch
+ * Basically adds "/archive/master.zip" to the end.
+ * @param {string} classifiedQuery
+ * @returns {string} direct download URL
+ */
+export function buildZipURLFromRepoURL(classifiedQuery) {
+  return classifiedQuery + "/archive/master.zip";
 }
 
-export function parseInfo(parameters) {
-  var repoPath = new URL(parameters).pathname;
-  var splitPath = repoPath.split("/");
-  var info = {};
-  console.log({ repoPath }, { splitPath });
+/**
+ * Converts URL's from this format:
+ *
+ * ```url
+ * https://github.com/[USER]/[REPO]/blob/[SHA_OR_BRANCH]/[PATH_TO_FILE]
+ * ```
+ *
+ * to this format:
+ *
+ * ```url
+ * https://raw.githubusercontent.com/[USER]/[REPO]/[SHA_OR_BRANCH]/[PATH_TO_FILE]
+ * ```
+ *
+ * `[PATH]` is optional
+ *
+ * @param {string} classifiedQuery
+ * @returns {string} Raw URL to download file directly
+ */
+export function buildFileURL(classifiedQuery) {
+  const url = new URL(classifiedQuery);
+  const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
 
-  info.author = splitPath[1];
-  info.repository = splitPath[2];
-  info.branch = splitPath[4];
-
-  info.rootName = splitPath[splitPath.length - 1];
-  if (!!splitPath[4]) {
-    info.resPath = repoPath.substring(
-      repoPath.indexOf(splitPath[4]) + splitPath[4].length + 1
-    );
-  }
-  info.urlPrefix =
-    "https://api.github.com/repos/" +
-    info.author +
-    "/" +
-    info.repository +
-    "/contents/";
-  info.urlPostfix = "?ref=" + info.branch;
-
-  if (!parameters.fileName || parameters.fileName == "") {
-    info.downloadFileName = info.rootName;
-  } else {
-    info.downloadFileName = parameters.fileName;
-  }
-
-  if (parameters.rootDirectory == "false") {
-    info.rootDirectoryName = "";
-  } else if (
-    !parameters.rootDirectory ||
-    parameters.rootDirectory == "" ||
-    parameters.rootDirectory == "true"
-  ) {
-    info.rootDirectoryName = info.rootName + "/";
-  } else {
-    info.rootDirectoryName = parameters.rootDirectory + "/";
-  }
-
-  return info;
+  return (
+    `https://raw.githubusercontent.com/` +
+    `${user}/${repo}/${commit}/${path.join("/")}`
+  );
 }
 
-// var templateUrl = "https?://github.com/.+/.+";
-// var downloadUrlInfix = "#/home?url=";
-// var downloadUrlPrefix =
-//   "https://minhaskamal.github.io/DownGit/" + downloadUrlInfix;
+/**
+ * Converts URL's from this format:
+ *
+ * ```url
+ * https://github.com/[USER]/[REPO]/tree/[BRANCH_OR_SHA]/[PATH]
+ * ```
+ *
+ * to this format:
+ *
+ * ```url
+ * https://api.github.com/repos/[USER]/[REPO]/contents/[PATH]?ref=[BRANCH_OR_SHA]
+ * ```
+ *
+ * `[PATH]` is optional
+ *
+ * @param {string} classifiedQuery
+ * @returns {string} API URL to retrieve top level contents of files and folders at [PATH]
+ */
+export function buildSubDirURL(classifiedQuery) {
+  const url = new URL(classifiedQuery);
+  const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
+  return (
+    `https://api.github.com/repos/` +
+    `${user}/${repo}/contents/${path.join("/")}?ref=${commit}`
+  );
+}
 
-// if ($routeParams.url) {
-//   $scope.url = $routeParams.url;
-// }
-
-// if ($scope.url.match(templateUrl)) {
-//   var parameter = {
-//     url: $routeParams.url,
-//     fileName: $routeParams.fileName,
-//     rootDirectory: $routeParams.rootDirectory,
-//   };
-//   var progress = {
-//     isProcessing: $scope.isProcessing,
-//     downloadedFiles: $scope.downloadedFiles,
-//     totalFiles: $scope.totalFiles,
-//   };
-//   downGitService.downloadZippedFiles(parameter, progress, toastr);
-// } else if ($scope.url != "") {
-//   toastr.warning("Invalid URL!", { iconClass: "toast-down" });
-// }
+/**
+ * Create Real Python API URL from [WORD]
+ *
+ * From:
+ *
+ * ```
+ * [WORD]
+ * ```
+ *
+ * To:
+ *
+ * ```
+ * https://api.github.com/repos/realpython/materials/contents/[WORD]?ref=master
+ * ```
+ *
+ * @param {string} folderName
+ * @returns {string} API URL to retrieve top level contents of files and folders at the [WORD] folder
+ */
+export function createApiUrlFromWord(folderName) {
+  return `${GITHUB_API_ENDPOINT}/${RP_MATERIALS_REPO}/contents/${folderName}?ref=${BRANCH}`;
+}

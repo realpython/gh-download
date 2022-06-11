@@ -1,4 +1,3 @@
-import { parseInfo } from "../src/query.js";
 import { downloadUrlWithIFrame } from "../src/download.js";
 
 function test() {
@@ -31,8 +30,9 @@ function test2() {
 // test2();
 
 function test3() {
-  downloadUrlWithIFrame(
-    "https://github.com/realpython/materials/blob/master/python-eval-mathrepl/mathrepl.py"
+  saveAs(
+    "https://raw.githubusercontent.com/realpython/materials/master/python-eval-mathrepl/mathrepl.py",
+    "marthrepl.py"
   );
 }
 

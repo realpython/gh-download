@@ -1,5 +1,5 @@
 /**
- * Download a folder from the Real Python materials repository
+ * Function to download GitHub repositories, GitHub repository sub folders, and raw files.
  *
  * The main data structure is the `folderStructure` which is an object that
  * represents a folder. The keys are the file or folder names and the values are
@@ -23,21 +23,6 @@
  *
  */
 
-// https://api.github.com/repos/realpython/materials/contents/arcade-platformer?ref=master
-const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
-/** The user/repo address of the repository on GitHub*/
-const RP_MATERIALS_REPO = "realpython/materials";
-const BRANCH = "master";
-
-/**
- * Create the initial query URL.
- * @param {string} folderName
- * @returns {string} A url e.g. https://api.github.com/repos/realpython/materials/contents/dwitter-part-1?ref=master
- */
-function createURL(folderName) {
-  return `${GITHUB_API_ENDPOINT}/${RP_MATERIALS_REPO}/contents/${folderName}?ref=${BRANCH}`;
-}
-
 /**
  * Get an array buffer from a raw source.
  * @param {string} url
@@ -46,6 +31,28 @@ function createURL(folderName) {
 async function getFileData(url) {
   const arrayBuffer = await fetch(url).then((r) => r.arrayBuffer());
   return arrayBuffer;
+}
+
+/**
+ * Fetch folder from repository, build a ZIP archive and download it.
+ * @param {string} folderName
+ */
+export async function downloadMaterials(folderName) {
+  const url = createURL(folderName);
+
+  const resp = await getFolderStructure(url);
+  buildZipFromFolderStructure(resp)
+    .generateAsync({ type: "blob" })
+    .then(function (content) {
+      saveAs(content, folderName + ".zip");
+    });
+}
+
+export function downloadUrlWithIFrame(url) {
+  const iframe = document.createElement("iframe");
+  iframe.src = url;
+  iframe.style.display = "none";
+  document.body.appendChild(iframe);
 }
 
 /**
@@ -92,26 +99,4 @@ function buildZipFromFolderStructure(folderStructure, zip = null) {
   });
 
   return zip;
-}
-
-/**
- * Fetch folder from repository, build a ZIP archive and download it.
- * @param {string} folderName
- */
-export async function downloadMaterials(folderName) {
-  const url = createURL(folderName);
-
-  const resp = await getFolderStructure(url);
-  buildZipFromFolderStructure(resp)
-    .generateAsync({ type: "blob" })
-    .then(function (content) {
-      saveAs(content, folderName + ".zip");
-    });
-}
-
-export function downloadUrlWithIFrame(url) {
-  const iframe = document.createElement("iframe");
-  iframe.src = url;
-  iframe.style.display = "none";
-  document.body.appendChild(iframe);
 }
