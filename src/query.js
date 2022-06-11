@@ -33,7 +33,7 @@ const GITHUB_RAW_ENDPOINT = "https://raw.githubusercontent.com";
 const RP_MATERIALS_REPO = "realpython/materials";
 
 export function getQuery() {
-  return window.location.search.slice(1);
+  return decodeURIComponent(window.location.search.slice(1));
 }
 
 export class UnsupportedHost extends Error {
@@ -135,6 +135,19 @@ export function buildSubDirURL(classifiedQuery) {
 }
 
 /**
+ * Gets a name for a subdir URL, e.g. for saving the archive
+ *
+ * @param {string} subDirUrl
+ * @returns
+ */
+export function getSubDirName(subDirUrl) {
+  const url = new URL(subDirUrl);
+  const [_, user, repo, __, ...path] = url.pathname.split("/").slice(1);
+
+  return `${repo}-${path.join("-")}`;
+}
+
+/**
  * Create Real Python API URL from [WORD]
  *
  * From:
@@ -154,4 +167,10 @@ export function buildSubDirURL(classifiedQuery) {
  */
 export function createApiUrlFromWord(folderName) {
   return `${GITHUB_API_ENDPOINT}/${RP_MATERIALS_REPO}/contents/${folderName}?ref=master`;
+}
+
+export function getFileNameFromUrl(fileUrl) {
+  const url = new URL(fileUrl);
+  const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
+  return path.slice(-1);
 }

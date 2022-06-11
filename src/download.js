@@ -23,6 +23,12 @@
  *
  */
 
+import {
+  getFileNameFromUrl,
+  getSubDirName,
+  createApiUrlFromWord,
+} from "./query.js";
+
 /**
  * Get an array buffer from a raw source.
  * @param {string} url
@@ -34,25 +40,25 @@ async function getFileData(url) {
 }
 
 /**
- * Fetch folder from repository, build a ZIP archive and download it.
- * @param {string} folderName
+ * Open a link in an invisible IFrame to download it.
+ * Only works for GitHub ZIP archives.
+ * @param {string} url
  */
-export async function downloadMaterials(folderName) {
-  const url = createURL(folderName);
-
-  const resp = await getFolderStructure(url);
-  buildZipFromFolderStructure(resp)
-    .generateAsync({ type: "blob" })
-    .then(function (content) {
-      saveAs(content, folderName + ".zip");
-    });
-}
-
 export function downloadUrlWithIFrame(url) {
   const iframe = document.createElement("iframe");
   iframe.src = url;
   iframe.style.display = "none";
   document.body.appendChild(iframe);
+}
+
+/**
+ * Downloads a file from a url saving it as the last element of the main URL
+ * https://github.com/.../[FILE_NAME]
+ * Does not work for GitHub ZIP archives see {@link downloadUrlWithIFrame}
+ * @param {string} url
+ */
+export function downloadFileFromUrl(url) {
+  saveAs(url, getFileNameFromUrl(url));
 }
 
 /**
@@ -99,4 +105,27 @@ function buildZipFromFolderStructure(folderStructure, zip = null) {
   });
 
   return zip;
+}
+
+export async function downloadSubDirFromGitHub(url) {
+  buildZipFromFolderStructure(await getFolderStructure(url))
+    .generateAsync({ type: "blob" })
+    .then(function (content) {
+      saveAs(content, getSubDirName(url) + ".zip");
+    });
+}
+
+/**
+ * Fetch folder from materials repository, build a ZIP archive and download it.
+ * @param {string} folderName
+ */
+export async function downloadMaterialsFromWord(folderName) {
+  const url = createApiUrlFromWord(folderName);
+
+  const resp = await getFolderStructure(url);
+  buildZipFromFolderStructure(resp)
+    .generateAsync({ type: "blob" })
+    .then(function (content) {
+      saveAs(content, folderName + ".zip");
+    });
 }
