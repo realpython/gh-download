@@ -28,9 +28,9 @@ export const QUERY_TYPES = {
 };
 
 const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
+const GITHUB_RAW_ENDPOINT = "https://raw.githubusercontent.com";
 /** The user/repo address of the repository on GitHub*/
 const RP_MATERIALS_REPO = "realpython/materials";
-const BRANCH = "master";
 
 export function getQuery() {
   return window.location.search.slice(1);
@@ -104,10 +104,7 @@ export function buildFileURL(classifiedQuery) {
   const url = new URL(classifiedQuery);
   const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
 
-  return (
-    `https://raw.githubusercontent.com/` +
-    `${user}/${repo}/${commit}/${path.join("/")}`
-  );
+  return `${GITHUB_RAW_ENDPOINT}/${user}/${repo}/${commit}/${path.join("/")}`;
 }
 
 /**
@@ -132,7 +129,7 @@ export function buildSubDirURL(classifiedQuery) {
   const url = new URL(classifiedQuery);
   const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
   return (
-    `https://api.github.com/repos/` +
+    `${GITHUB_API_ENDPOINT}/` +
     `${user}/${repo}/contents/${path.join("/")}?ref=${commit}`
   );
 }
@@ -156,5 +153,5 @@ export function buildSubDirURL(classifiedQuery) {
  * @returns {string} API URL to retrieve top level contents of files and folders at the [WORD] folder
  */
 export function createApiUrlFromWord(folderName) {
-  return `${GITHUB_API_ENDPOINT}/${RP_MATERIALS_REPO}/contents/${folderName}?ref=${BRANCH}`;
+  return `${GITHUB_API_ENDPOINT}/${RP_MATERIALS_REPO}/contents/${folderName}?ref=master`;
 }
