@@ -1,0 +1,26 @@
+{
+  "name": "gh-download",
+  "version": "1.0.0",
+  "description": "This service, adapted from [DownGit](https://minhaskamal.github.io/DownGit), allows you to download zipped folders from [Real Python's materials](https://github.com/realpython/materials) GitHub repository.",
+  "main": "index.js",
+  "type": "module",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/realpython/gh-download.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/realpython/gh-download/issues"
+  },
+  "homepage": "https://github.com/realpython/gh-download#readme",
+  "devDependencies": {
+    "mocha": "^10.0.0"
+  }
+}

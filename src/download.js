@@ -108,3 +108,10 @@ export async function downloadMaterials(folderName) {
       saveAs(content, folderName + ".zip");
     });
 }
+
+export function downloadUrlWithIFrame(url) {
+  const iframe = document.createElement("iframe");
+  iframe.src = url;
+  iframe.style.display = "none";
+  document.body.appendChild(iframe);
+}
