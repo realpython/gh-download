@@ -5,6 +5,8 @@ import {
   buildFileURL,
   buildZipURLFromRepoURL,
   buildSubDirURL,
+  convertZipLinkToSourceCode,
+  createSourceCodeUrlFromWord,
 } from "./query.js";
 import {
   downloadFileFromUrl,
@@ -12,7 +14,7 @@ import {
   downloadSubDirFromGitHub,
   downloadMaterialsFromWord,
 } from "./download.js";
-// import { initializeButtons } from "./initializeButtons.js";
+import { initializeButtons } from "./initializeButtons.js";
 import { noQueryScreen } from "./noQueryScreen.js";
 
 window.onload = async () => {
@@ -25,30 +27,42 @@ window.onload = async () => {
     }
 
     const queryType = classifyQuery(query);
+    let downloadCallback;
+    let sourceCodeLink;
 
     switch (queryType) {
       case QUERY_TYPES.REPO:
-        downloadUrlWithIFrame(buildZipURLFromRepoURL(query));
+        downloadCallback = () =>
+          downloadUrlWithIFrame(buildZipURLFromRepoURL(query));
+        sourceCodeLink = query;
         break;
       case QUERY_TYPES.SUBDIR:
-        await downloadSubDirFromGitHub(buildSubDirURL(query));
+        downloadCallback = async () =>
+          await downloadSubDirFromGitHub(buildSubDirURL(query));
+        sourceCodeLink = query;
         break;
       case QUERY_TYPES.ZIP:
-        downloadUrlWithIFrame(query);
+        downloadCallback = () => downloadUrlWithIFrame(query);
+        sourceCodeLink = convertZipLinkToSourceCode(query);
         break;
       case QUERY_TYPES.FILE:
-        downloadFileFromUrl(buildFileURL(query));
+        downloadCallback = () => downloadFileFromUrl(buildFileURL(query));
+        sourceCodeLink = query;
         break;
       case QUERY_TYPES.WORD:
-        await downloadMaterialsFromWord(query);
+        downloadCallback = async () => await downloadMaterialsFromWord(query);
+        sourceCodeLink = createSourceCodeUrlFromWord(query);
         break;
       default:
         noQueryScreen();
         return;
     }
 
-    initializeButtons("?");
+    downloadCallback();
+
+    initializeButtons(downloadCallback, sourceCodeLink);
   } catch (e) {
+    console.log(e);
     noQueryScreen();
   }
 

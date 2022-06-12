@@ -29,7 +29,8 @@ export const QUERY_TYPES = {
 
 const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
 const GITHUB_RAW_ENDPOINT = "https://raw.githubusercontent.com";
-const RP_MATERIALS_REPO = "realpython/materials";
+export const RP_MATERIALS_REPO_PATH = "realpython/materials";
+export const RP_HOME = "https://www.realpython.com";
 
 export function getQuery() {
   return decodeURIComponent(window.location.search.slice(1));
@@ -165,11 +166,29 @@ export function getSubDirName(subDirUrl) {
  * @returns {string} API URL to retrieve top level contents of files and folders at the [WORD] folder
  */
 export function createApiUrlFromWord(folderName) {
-  return `${GITHUB_API_ENDPOINT}/${RP_MATERIALS_REPO}/contents/${folderName}?ref=master`;
+  return `${GITHUB_API_ENDPOINT}/${RP_MATERIALS_REPO_PATH}/contents/${folderName}?ref=master`;
+}
+
+export function createSourceCodeUrlFromWord(word) {
+  return `https://github.com/${RP_MATERIALS_REPO_PATH}/${word}`;
 }
 
 export function getFileNameFromUrl(fileUrl) {
   const url = new URL(fileUrl);
   const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
   return path.slice(-1);
+}
+
+/**
+ * https://github.com/[USER]/[REPO]/archive/master.zip
+ * to
+ * https://github.com/[USER]/[REPO]
+ *
+ * @param {string} zipUrl
+ * @returns {string}
+ */
+export function convertZipLinkToSourceCode(zipUrl) {
+  const url = new URL(zipUrl);
+  const [user, repo, ...rest] = url.pathname.split("/").slice(1);
+  return `https://github.com/${user}/${repo}`;
 }

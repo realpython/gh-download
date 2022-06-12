@@ -1,3 +1,5 @@
+import { RP_HOME, RP_MATERIALS_REPO_PATH } from "./query.js";
+
 export function noQueryScreen() {
   // document.getElementById("download").remove();
 
@@ -7,7 +9,7 @@ export function noQueryScreen() {
 
   const sourceCodeButton = document.getElementById("src-code");
   sourceCodeButton.addEventListener("click", () => {
-    location.href = GITHUB_ROOT;
+    location.href = `https://www.github.com/${RP_MATERIALS_REPO_PATH}`;
   });
   // sourceCodeButton.innerText = "Browse the Source Code";
 
