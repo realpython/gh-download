@@ -9,7 +9,7 @@
 const VALID_HOSTS = ["github.com"];
 
 export const QUERY_TYPES = {
-  // https://github.com/rahmonov/alcazar
+  // https://github.com/[USER]/[REPO]
   REPO: "REPO",
 
   // https://github.com/[USER]/[REPO]/tree/[SHA_OR_BRANCH]/[OPTIONAL_PATH_TO_SUBDIR]
@@ -29,7 +29,6 @@ export const QUERY_TYPES = {
 
 const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
 const GITHUB_RAW_ENDPOINT = "https://raw.githubusercontent.com";
-/** The user/repo address of the repository on GitHub*/
 const RP_MATERIALS_REPO = "realpython/materials";
 
 export function getQuery() {
