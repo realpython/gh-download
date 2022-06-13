@@ -1,5 +1,5 @@
 /**
- * Download a folder from the Real Python materials repository
+ * Function to download GitHub repositories, GitHub repository sub folders, and raw files.
  *
  * The main data structure is the `folderStructure` which is an object that
  * represents a folder. The keys are the file or folder names and the values are
@@ -23,20 +23,7 @@
  *
  */
 
-// https://api.github.com/repos/realpython/materials/contents/arcade-platformer?ref=master
-const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
-/** The user/repo address of the repository on GitHub*/
-const RP_MATERIALS_REPO = "realpython/materials";
-const BRANCH = "master";
-
-/**
- * Create the initial query URL.
- * @param {string} folderName
- * @returns {string} A url e.g. https://api.github.com/repos/realpython/materials/contents/dwitter-part-1?ref=master
- */
-function createURL(folderName) {
-  return `${GITHUB_API_ENDPOINT}/${RP_MATERIALS_REPO}/contents/${folderName}?ref=${BRANCH}`;
-}
+import { MaterialsQuery } from "./query.js";
 
 /**
  * Get an array buffer from a raw source.
@@ -46,6 +33,28 @@ function createURL(folderName) {
 async function getFileData(url) {
   const arrayBuffer = await fetch(url).then((r) => r.arrayBuffer());
   return arrayBuffer;
+}
+
+/**
+ * Open a link in an invisible IFrame to download it.
+ * Only works for GitHub ZIP archives.
+ * @param {string} url
+ */
+export function downloadUrlWithIFrame(url) {
+  const iframe = document.createElement("iframe");
+  iframe.src = url;
+  iframe.style.display = "none";
+  document.body.appendChild(iframe);
+}
+
+/**
+ * Downloads a file from a url saving it as the last element of the main URL
+ * https://github.com/.../[FILE_NAME]
+ * Does not work for GitHub ZIP archives see {@link downloadUrlWithIFrame}
+ * @param {string} url
+ */
+export function downloadFileFromUrl(url) {
+  saveAs(url, MaterialsQuery.getFileNameFromUrl(url));
 }
 
 /**
@@ -94,12 +103,20 @@ function buildZipFromFolderStructure(folderStructure, zip = null) {
   return zip;
 }
 
+export async function downloadSubDirFromGitHub(url) {
+  buildZipFromFolderStructure(await getFolderStructure(url))
+    .generateAsync({ type: "blob" })
+    .then(function (content) {
+      saveAs(content, MaterialsQuery.getSubDirName(url) + ".zip");
+    });
+}
+
 /**
- * Fetch folder from repository, build a ZIP archive and download it.
+ * Fetch folder from materials repository, build a ZIP archive and download it.
  * @param {string} folderName
  */
-export async function downloadMaterials(folderName) {
-  const url = createURL(folderName);
+export async function downloadMaterialsFromWord(folderName) {
+  const url = MaterialsQuery.createApiUrlFromWord(folderName);
 
   const resp = await getFolderStructure(url);
   buildZipFromFolderStructure(resp)

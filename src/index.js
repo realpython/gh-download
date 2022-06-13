@@ -1,22 +1,15 @@
-import { downloadMaterials } from "./downloadRpMaterials.js";
+import { MaterialsQuery } from "./query.js";
+
 import { initializeButtons } from "./initializeButtons.js";
 import { noQueryScreen } from "./noQueryScreen.js";
 
-export function getUrlFolderName() {
-  return window.location.search.slice(1);
-}
-
-window.onload = async () => {
-  const targetFolder = getUrlFolderName();
-  if (targetFolder) {
-    try {
-      await downloadMaterials(targetFolder);
-      initializeButtons(targetFolder);
-    } catch (e) {
-      console.error(e);
-      noQueryScreen();
-    }
-  } else {
+window.onload = () => {
+  try {
+    const materialsQuery = new MaterialsQuery();
+    const [downloadCallback, sourceCodeLink] = materialsQuery.download();
+    initializeButtons(downloadCallback, sourceCodeLink);
+  } catch (e) {
+    console.log(e);
     noQueryScreen();
   }
 };
