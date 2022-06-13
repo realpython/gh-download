@@ -43,7 +43,7 @@ export class UnsupportedHost extends Error {
 
 export class Query {
   constructor(text = null) {
-    if (text === null) this.value = this.getQuery;
+    if (text === null) this.value = Query.getQuery();
     else if (text[0] === "?") this.value = text.slice(1);
     else this.value = text;
 
@@ -75,7 +75,7 @@ export class Query {
 export class MaterialsQuery extends Query {
   constructor(text = null) {
     super(text);
-    this.type = MaterialsQuery.#classifyQuery(text);
+    this.type = MaterialsQuery.#classifyQuery(this.value);
     this.#buildDownloadCallback();
   }
 
