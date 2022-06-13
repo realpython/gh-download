@@ -23,11 +23,7 @@
  *
  */
 
-import {
-  getFileNameFromUrl,
-  getSubDirName,
-  createApiUrlFromWord,
-} from "./query.js";
+import { MaterialsQuery } from "./query.js";
 
 /**
  * Get an array buffer from a raw source.
@@ -58,7 +54,7 @@ export function downloadUrlWithIFrame(url) {
  * @param {string} url
  */
 export function downloadFileFromUrl(url) {
-  saveAs(url, getFileNameFromUrl(url));
+  saveAs(url, MaterialsQuery.getFileNameFromUrl(url));
 }
 
 /**
@@ -111,7 +107,7 @@ export async function downloadSubDirFromGitHub(url) {
   buildZipFromFolderStructure(await getFolderStructure(url))
     .generateAsync({ type: "blob" })
     .then(function (content) {
-      saveAs(content, getSubDirName(url) + ".zip");
+      saveAs(content, MaterialsQuery.getSubDirName(url) + ".zip");
     });
 }
 
@@ -120,7 +116,7 @@ export async function downloadSubDirFromGitHub(url) {
  * @param {string} folderName
  */
 export async function downloadMaterialsFromWord(folderName) {
-  const url = createApiUrlFromWord(folderName);
+  const url = MaterialsQuery.createApiUrlFromWord(folderName);
 
   const resp = await getFolderStructure(url);
   buildZipFromFolderStructure(resp)
