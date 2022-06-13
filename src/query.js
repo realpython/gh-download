@@ -65,7 +65,7 @@ export class Query {
       window.location.href !==
       window.location.origin + window.location.pathname + "?" + query
     ) {
-      this.#setURL(
+      Query.#setURL(
         window.location.origin + window.location.pathname + "?" + query
       );
     }
