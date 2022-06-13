@@ -1,8 +1,7 @@
 import {
   downloadFileFromUrl,
   downloadUrlWithIFrame,
-  downloadSubDirFromGitHub,
-  downloadMaterialsFromWord,
+  GitHubFolder,
 } from "./download.js";
 
 export const RP_MATERIALS_REPO_PATH = "realpython/materials";
@@ -116,9 +115,7 @@ export class MaterialsQuery extends Query {
         break;
       case QUERY_TYPES.SUBDIR:
         this.downloadCallback = async () =>
-          await downloadSubDirFromGitHub(
-            MaterialsQuery.buildSubDirURL(this.value)
-          );
+          await GitHubFolder.get(MaterialsQuery.buildSubDirURL(this.value));
         this.sourceCodeLink = this.value;
         break;
       case QUERY_TYPES.ZIP:
@@ -134,7 +131,9 @@ export class MaterialsQuery extends Query {
         break;
       case QUERY_TYPES.WORD:
         this.downloadCallback = async () =>
-          await downloadMaterialsFromWord(this.value);
+          await GitHubFolder.get(
+            MaterialsQuery.createApiUrlFromWord(this.value)
+          );
         this.sourceCodeLink = MaterialsQuery.createSourceCodeUrlFromWord(
           this.value
         );

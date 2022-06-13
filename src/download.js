@@ -25,14 +25,98 @@
 
 import { MaterialsQuery } from "./query.js";
 
-/**
- * Get an array buffer from a raw source.
- * @param {string} url
- * @returns {ArrayBuffer}
- */
-async function getFileData(url) {
-  const arrayBuffer = await fetch(url).then((r) => r.arrayBuffer());
-  return arrayBuffer;
+class GitHubObject {
+  constructor(name, type, contents) {
+    this.name = name;
+    this.type = type;
+    this.contents = contents;
+
+    if (this.type === "file" && !this.contents instanceof ArrayBuffer) {
+      throw "file contents must be ArrayBuffer";
+    } else if (this.type === "dir" && !this.contents instanceof Array) {
+      throw "dir contents must be Array";
+    }
+  }
+}
+
+export class GitHubFolder {
+  #struct;
+  /** @private */
+  constructor(structure) {
+    this.#struct = structure;
+  }
+
+  static async get(url) {
+    const folder = new GitHubFolder(
+      await GitHubFolder.getFolderStructure({ url })
+    );
+    console.log(folder);
+    const zip = await folder.#buildZip(folder.#struct);
+    console.log(zip);
+    const blob = await zip.generateAsync({ type: "blob" });
+    console.log(blob);
+    saveAs(blob, MaterialsQuery.getSubDirName(url) + ".zip");
+  }
+
+  /**
+   * Get an array buffer from a raw source.
+   * @param {string} url
+   * @returns {ArrayBuffer}
+   */
+  static async getFileData(url) {
+    const arrayBuffer = await fetch(url).then((r) => r.arrayBuffer());
+    return arrayBuffer;
+  }
+
+  static async getFolderStructure({ url = null, name = null } = {}) {
+    const dir = new GitHubObject(
+      name || MaterialsQuery.getSubDirName(url),
+      "dir",
+      await fetch(url).then((r) => r.json())
+    );
+
+    await Promise.all(
+      dir.contents.map(async (item) => {
+        if (item.type === "dir") {
+          return await GitHubFolder.getFolderStructure({
+            url: item.url,
+            name: item.name,
+          });
+        } else if (item.type === "file") {
+          return new GitHubObject(
+            item.name,
+            "file",
+            await GitHubFolder.getFileData(item.download_url)
+          );
+        }
+      })
+    );
+  }
+
+  /**
+   * Recursively builds a `JSZip` instance.
+   * @param {object} folderStructure
+   * @param {JSZip} zip
+   * @returns {JSZip}
+   */
+  #buildZip() {
+    function helper(folderStructure, zip = null) {
+      if (zip === null) zip = new JSZip();
+
+      Object.entries(folderStructure).forEach(([key, value]) => {
+        console.log(key, value);
+        if (value instanceof ArrayBuffer) {
+          zip.file(key, value);
+        } else {
+          zip.folder(key);
+          helper(value, zip.folder(key));
+        }
+      });
+      return zip;
+    }
+
+    return helper(this.#struct);
+  }
 }
 
 /**
@@ -55,73 +139,4 @@ export function downloadUrlWithIFrame(url) {
  */
 export function downloadFileFromUrl(url) {
   saveAs(url, MaterialsQuery.getFileNameFromUrl(url));
-}
-
-/**
- * Recursively build a `folderStructure` by making requests to the GitHub API
- * for folder contents, and making requests to the `raw` endpoints for files.
- * @param {string} url
- * @param {object} structure
- * @returns {object} a `folderStructure`
- */
-async function getFolderStructure(url, structure = null) {
-  if (structure === null) structure = {};
-
-  const resp = await fetch(url).then((r) => r.json());
-
-  await Promise.all(
-    resp.map(async (item) => {
-      if (item.type === "dir") {
-        structure[item.name] = await getFolderStructure(item.url);
-      } else if (item.type === "file") {
-        structure[item.name] = await getFileData(item.download_url);
-      }
-    })
-  );
-
-  return structure;
-}
-
-/**
- * Recursively builds a `JSZip` instance from a `folderStructure`.
- * @param {object} folderStructure
- * @param {JSZip} zip
- * @returns {JSZip}
- */
-function buildZipFromFolderStructure(folderStructure, zip = null) {
-  if (zip === null) zip = new JSZip();
-
-  Object.entries(folderStructure).forEach(([key, value]) => {
-    if (value instanceof ArrayBuffer) {
-      zip.file(key, value);
-    } else {
-      zip.folder(key);
-      buildZipFromFolderStructure(value, zip.folder(key));
-    }
-  });
-
-  return zip;
-}
-
-export async function downloadSubDirFromGitHub(url) {
-  buildZipFromFolderStructure(await getFolderStructure(url))
-    .generateAsync({ type: "blob" })
-    .then(function (content) {
-      saveAs(content, MaterialsQuery.getSubDirName(url) + ".zip");
-    });
-}
-
-/**
- * Fetch folder from materials repository, build a ZIP archive and download it.
- * @param {string} folderName
- */
-export async function downloadMaterialsFromWord(folderName) {
-  const url = MaterialsQuery.createApiUrlFromWord(folderName);
-
-  const resp = await getFolderStructure(url);
-  buildZipFromFolderStructure(resp)
-    .generateAsync({ type: "blob" })
-    .then(function (content) {
-      saveAs(content, folderName + ".zip");
-    });
 }
