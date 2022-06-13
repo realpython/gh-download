@@ -144,8 +144,8 @@ export class MaterialsQuery extends Query {
     }
   }
 
-  download() {
-    this.downloadCallback();
+  async download() {
+    await this.downloadCallback();
     return [this.downloadCallback, this.sourceCodeLink];
   }
 
