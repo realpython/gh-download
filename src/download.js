@@ -54,7 +54,7 @@ export function downloadUrlWithIFrame(url) {
  * @param {string} url
  */
 export function downloadFileFromUrl(url) {
-  saveAs(url, MaterialsQuery.getFileNameFromUrl(url));
+  saveAs(url, MaterialsQuery.fileNameFromUrl(url));
 }
 
 /**
@@ -107,7 +107,7 @@ export async function downloadSubDirFromGitHub(url) {
   buildZipFromFolderStructure(await getFolderStructure(url))
     .generateAsync({ type: "blob" })
     .then(function (content) {
-      saveAs(content, MaterialsQuery.getSubDirName(url) + ".zip");
+      saveAs(content, MaterialsQuery.subDirNameFromSubDirUrl(url) + ".zip");
     });
 }
 
@@ -116,7 +116,7 @@ export async function downloadSubDirFromGitHub(url) {
  * @param {string} folderName
  */
 export async function downloadMaterialsFromWord(folderName) {
-  const url = MaterialsQuery.createApiUrlFromWord(folderName);
+  const url = MaterialsQuery.apiUrlFromWord(folderName);
 
   const resp = await getFolderStructure(url);
   buildZipFromFolderStructure(resp)
