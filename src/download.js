@@ -67,10 +67,18 @@ export function downloadFileFromUrl(url) {
 async function getFolderStructure(url, structure = null) {
   if (structure === null) structure = {};
 
-  const resp = await fetch(url).then((r) => r.json());
+  const resp = await fetch(url);
+  const json = await resp.json();
+  if (resp.ok === false) {
+    if (json.message.includes("API rate limit exceeded")) {
+      throw new Error("API rate limit exceeded");
+    } else {
+      throw new Error();
+    }
+  }
 
   await Promise.all(
-    resp.map(async (item) => {
+    json.map(async (item) => {
       if (item.type === "dir") {
         structure[item.name] = await getFolderStructure(item.url);
       } else if (item.type === "file") {

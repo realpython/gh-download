@@ -9,7 +9,11 @@ window.onload = async () => {
     const [downloadCallback, sourceCodeLink] = await materialsQuery.download();
     initializeButtons(downloadCallback, sourceCodeLink);
   } catch (e) {
-    console.log(e);
-    noQueryScreen();
+    if (e.message.includes("API rate limit")) {
+      noQueryScreen("API_RATE_LIMIT");
+    } else {
+      console.log(e.message);
+      noQueryScreen();
+    }
   }
 };
