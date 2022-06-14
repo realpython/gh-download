@@ -16,6 +16,8 @@ export function noQueryScreen(type) {
   const newNote = document.createElement("p");
   if (type == "API_RATE_LIMIT") {
     newNote.innerText = `GitHub download quota exceeded...`;
+  } else if (type == "404") {
+    newNote.innerText = "Resource not found...";
   } else {
     newNote.innerText = `Something went wrong...`;
   }

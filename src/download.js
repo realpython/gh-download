@@ -72,6 +72,8 @@ async function getFolderStructure(url, structure = null) {
   if (resp.ok === false) {
     if (json.message.includes("API rate limit exceeded")) {
       throw new Error("API rate limit exceeded");
+    } else if (resp.status == 404) {
+      throw new Error(404);
     } else {
       throw new Error();
     }

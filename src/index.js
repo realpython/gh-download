@@ -11,6 +11,8 @@ window.onload = async () => {
   } catch (e) {
     if (e.message.includes("API rate limit")) {
       noQueryScreen("API_RATE_LIMIT");
+    } else if (e.message == "404") {
+      noQueryScreen("404");
     } else {
       console.log(e.message);
       noQueryScreen();
