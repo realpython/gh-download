@@ -82,23 +82,19 @@ export class MaterialsQuery extends Query {
   static #classifyQuery(query) {
     try {
       const url = new URL(query);
-
-      if (!VALID_HOSTS.includes(url.hostname)) throw new UnsupportedHost();
-
       const path = url.pathname.split("/").slice(1);
 
-      if (path.slice(-1)[0].match(".zip")) {
+      if (!VALID_HOSTS.includes(url.hostname)) throw new UnsupportedHost();
+      if (path.slice(-1)[0].match(".zip"))
         throw new Error("Can't be a zip file");
-      }
-
-      if (path.length === 2) {
-        throw new Error("Can't be a base repository");
-      }
+      if (path.length === 2) throw new Error("Can't be a base repository");
 
       if (path[2] === "tree") {
         return QUERY_TYPES.SUBDIR;
       } else if (path[2] === "blob") {
         return QUERY_TYPES.FILE;
+      } else {
+        throw new Error("Can't classify this URL");
       }
     } catch (e) {
       if (e instanceof UnsupportedHost) throw e;
@@ -111,13 +107,13 @@ export class MaterialsQuery extends Query {
 
   #buildDownloadCallback() {
     switch (this.type) {
-      case QUERY_TYPES.REPO:
-        this.downloadCallback = () =>
-          downloadUrlWithIFrame(
-            MaterialsQuery.buildZipURLFromRepoURL(this.value)
-          );
-        this.sourceCodeLink = this.value;
-        break;
+      // case QUERY_TYPES.REPO:
+      //   this.downloadCallback = () =>
+      //     downloadUrlWithIFrame(
+      //       MaterialsQuery.buildZipURLFromRepoURL(this.value)
+      //     );
+      //   this.sourceCodeLink = this.value;
+      //   break;
       case QUERY_TYPES.SUBDIR:
         this.downloadCallback = async () =>
           await downloadSubDirFromGitHub(
@@ -125,24 +121,24 @@ export class MaterialsQuery extends Query {
           );
         this.sourceCodeLink = this.value;
         break;
-      case QUERY_TYPES.ZIP:
-        this.downloadCallback = () => downloadUrlWithIFrame(this.value);
-        this.sourceCodeLink = MaterialsQuery.convertZipLinkToSourceCode(
-          this.value
-        );
-        break;
+      // case QUERY_TYPES.ZIP:
+      //   this.downloadCallback = () => downloadUrlWithIFrame(this.value);
+      //   this.sourceCodeLink = MaterialsQuery.convertZipLinkToSourceCode(
+      //     this.value
+      //   );
+      //   break;
       case QUERY_TYPES.FILE:
         this.downloadCallback = () =>
           downloadFileFromUrl(MaterialsQuery.buildFileURL(this.value));
         this.sourceCodeLink = this.value;
         break;
-      case QUERY_TYPES.WORD:
-        this.downloadCallback = async () =>
-          await downloadMaterialsFromWord(this.value);
-        this.sourceCodeLink = MaterialsQuery.createSourceCodeUrlFromWord(
-          this.value
-        );
-        break;
+      // case QUERY_TYPES.WORD:
+      //   this.downloadCallback = async () =>
+      //     await downloadMaterialsFromWord(this.value);
+      //   this.sourceCodeLink = MaterialsQuery.createSourceCodeUrlFromWord(
+      //     this.value
+      //   );
+      //   break;
       default:
         throw "Not recognized type";
     }
