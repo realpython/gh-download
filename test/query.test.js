@@ -62,7 +62,9 @@ describe("Classify URLs", function () {
   });
 
   it("should fail to classify WORD", function () {
-    assert.equal(new MaterialsQuery("generator").type, QUERY_TYPES.WORD);
+    assert.throws(function () {
+      new MaterialsQuery("generator");
+    }, Error);
   });
 
   it("should fail to classify non GitHub host", function () {
@@ -75,7 +77,7 @@ describe("Classify URLs", function () {
 describe("Build File URLs", function () {
   it("should build raw URL from FILE type URL", function () {
     assert.equal(
-      MaterialsQuery.buildFileURL(
+      MaterialsQuery.apiUrlFromFileUrl(
         "https://github.com/realpython/materials/blob/master/python-eval-mathrepl/mathrepl.py"
       ),
       "https://raw.githubusercontent.com/realpython/materials/master/python-eval-mathrepl/mathrepl.py"
@@ -84,7 +86,7 @@ describe("Build File URLs", function () {
 
   it("should build raw URL from FILE type URL with specific SHA", function () {
     assert.equal(
-      MaterialsQuery.buildFileURL(
+      MaterialsQuery.apiUrlFromFileUrl(
         "https://github.com/realpython/materials/blob/d10ccf9e4451c1dbe99d9d3d06ea794bcb90188f/python-eval-mathrepl/mathrepl.py"
       ),
       "https://raw.githubusercontent.com/realpython/materials/d10ccf9e4451c1dbe99d9d3d06ea794bcb90188f/python-eval-mathrepl/mathrepl.py"
@@ -93,7 +95,7 @@ describe("Build File URLs", function () {
 
   it("should create API url from first level subdir", function () {
     assert.equal(
-      MaterialsQuery.buildSubDirURL(
+      MaterialsQuery.apiUrlFromSubDirUrl(
         "https://github.com/realpython/materials/tree/master/python-yaml"
       ),
       "https://api.github.com/repos/realpython/materials/contents/python-yaml?ref=master"
@@ -102,7 +104,7 @@ describe("Build File URLs", function () {
 
   it("should create API url from SHA specified subdir", function () {
     assert.equal(
-      MaterialsQuery.buildSubDirURL(
+      MaterialsQuery.apiUrlFromSubDirUrl(
         "https://github.com/realpython/materials/tree/7010df1c142cefe717be3ccb406b914b7cd5677e/web-scraping-bs4"
       ),
       "https://api.github.com/repos/realpython/materials/contents/web-scraping-bs4?ref=7010df1c142cefe717be3ccb406b914b7cd5677e"
@@ -111,7 +113,7 @@ describe("Build File URLs", function () {
 
   it("should create API url from SHA specified whole repo", function () {
     assert.equal(
-      MaterialsQuery.buildSubDirURL(
+      MaterialsQuery.apiUrlFromSubDirUrl(
         "https://github.com/realpython/dockerizing-django/tree/d3dc0dd9d2450f51c75337083edcdd4597f4ec1d"
       ),
       "https://api.github.com/repos/realpython/dockerizing-django/contents/?ref=d3dc0dd9d2450f51c75337083edcdd4597f4ec1d"
@@ -120,7 +122,7 @@ describe("Build File URLs", function () {
 
   it("should create API url from named branch whole repo", function () {
     assert.equal(
-      MaterialsQuery.buildSubDirURL(
+      MaterialsQuery.apiUrlFromSubDirUrl(
         "https://github.com/realpython/flask-boilerplate/tree/updated"
       ),
       "https://api.github.com/repos/realpython/flask-boilerplate/contents/?ref=updated"

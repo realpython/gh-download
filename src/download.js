@@ -36,21 +36,9 @@ async function getFileData(url) {
 }
 
 /**
- * Open a link in an invisible IFrame to download it.
- * Only works for GitHub ZIP archives.
- * @param {string} url
- */
-export function downloadUrlWithIFrame(url) {
-  const iframe = document.createElement("iframe");
-  iframe.src = url;
-  iframe.style.display = "none";
-  document.body.appendChild(iframe);
-}
-
-/**
  * Downloads a file from a url saving it as the last element of the main URL
  * https://github.com/.../[FILE_NAME]
- * Does not work for GitHub ZIP archives see {@link downloadUrlWithIFrame}
+ * Does not work for GitHub ZIP archive URLs
  * @param {string} url
  */
 export function downloadFileFromUrl(url) {
@@ -118,20 +106,5 @@ export async function downloadSubDirFromGitHub(url) {
     .generateAsync({ type: "blob" })
     .then(function (content) {
       saveAs(content, MaterialsQuery.subDirNameFromSubDirUrl(url) + ".zip");
-    });
-}
-
-/**
- * Fetch folder from materials repository, build a ZIP archive and download it.
- * @param {string} folderName
- */
-export async function downloadMaterialsFromWord(folderName) {
-  const url = MaterialsQuery.apiUrlFromWord(folderName);
-
-  const resp = await getFolderStructure(url);
-  buildZipFromFolderStructure(resp)
-    .generateAsync({ type: "blob" })
-    .then(function (content) {
-      saveAs(content, folderName + ".zip");
     });
 }
