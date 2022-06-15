@@ -13,7 +13,7 @@ const VALID_HOSTS = ["github.com"];
 
 export const QUERY_TYPES = {
   // https://github.com/[USER]/[REPO]
-  REPO: "REPO",
+  // REPO: "REPO", UNSUPPORTED
 
   // https://github.com/[USER]/[REPO]/tree/[SHA_OR_BRANCH]/[OPTIONAL_PATH_TO_SUBDIR]
   // SUBDIR can also be the root folder but at a branch or commit other than master/main
@@ -21,13 +21,13 @@ export const QUERY_TYPES = {
 
   // https://github.com/[USER]/[REPO]/archive/master.zip
   // TODO - check this for "main"
-  ZIP: "ZIP",
+  //  ZIP: "ZIP", UNSUPPORTED
 
   // https://github.com/[USER]/[REPO]/blob/[SHA_OR_BRANCH]/[PATH_TO_FILE]
   FILE: "FILE",
 
   // [FOLDER_IN_MATERIALS_REPO]
-  WORD: "WORD",
+  // WORD: "WORD", UNSUPPORTED
 };
 
 export class UnsupportedHost extends Error {
@@ -87,11 +87,15 @@ export class MaterialsQuery extends Query {
 
       const path = url.pathname.split("/").slice(1);
 
+      if (path.slice(-1)[0].match(".zip")) {
+        throw new Error("Can't be a zip file");
+      }
+
       if (path.length === 2) {
-        return QUERY_TYPES.REPO;
-      } else if (path.slice(-1)[0].match(".zip")) {
-        return QUERY_TYPES.ZIP;
-      } else if (path[2] === "tree") {
+        throw new Error("Can't be a base repository");
+      }
+
+      if (path[2] === "tree") {
         return QUERY_TYPES.SUBDIR;
       } else if (path[2] === "blob") {
         return QUERY_TYPES.FILE;

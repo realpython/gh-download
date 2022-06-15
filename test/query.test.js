@@ -2,11 +2,10 @@ import { QUERY_TYPES, UnsupportedHost, MaterialsQuery } from "../src/query.js";
 import assert from "assert";
 
 describe("Classify URLs", function () {
-  it("should classify REPO URL", function () {
-    assert.equal(
-      new MaterialsQuery("https://github.com/rahmonov/alcazar").type,
-      QUERY_TYPES.REPO
-    );
+  it("should fail to classify REPO URL", function () {
+    assert.throws(function () {
+      new MaterialsQuery("https://github.com/rahmonov/alcazar").type;
+    }, Error);
   });
 
   it("should classify SUBDIR URL master branch", function () {
@@ -27,13 +26,12 @@ describe("Classify URLs", function () {
     );
   });
 
-  it("should classify ZIP URL", function () {
-    assert.equal(
+  it("should fail to classify ZIP URL", function () {
+    assert.throws(function () {
       new MaterialsQuery(
         "https://github.com/realpython/dockerizing-django/archive/master.zip"
-      ).type,
-      QUERY_TYPES.ZIP
-    );
+      ).type;
+    }, Error);
   });
 
   it("should classify FILE URL", function () {
@@ -63,7 +61,7 @@ describe("Classify URLs", function () {
     );
   });
 
-  it("should classify WORD", function () {
+  it("should fail to classify WORD", function () {
     assert.equal(new MaterialsQuery("generator").type, QUERY_TYPES.WORD);
   });
 
