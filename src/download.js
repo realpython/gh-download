@@ -54,7 +54,7 @@ export function downloadUrlWithIFrame(url) {
  * @param {string} url
  */
 export function downloadFileFromUrl(url) {
-  saveAs(url, MaterialsQuery.getFileNameFromUrl(url));
+  saveAs(url, MaterialsQuery.fileNameFromUrl(url));
 }
 
 /**
@@ -67,10 +67,20 @@ export function downloadFileFromUrl(url) {
 async function getFolderStructure(url, structure = null) {
   if (structure === null) structure = {};
 
-  const resp = await fetch(url).then((r) => r.json());
+  const resp = await fetch(url);
+  const json = await resp.json();
+  if (resp.ok === false) {
+    if (json.message.includes("API rate limit exceeded")) {
+      throw new Error("API rate limit exceeded");
+    } else if (resp.status == 404) {
+      throw new Error(404);
+    } else {
+      throw new Error();
+    }
+  }
 
   await Promise.all(
-    resp.map(async (item) => {
+    json.map(async (item) => {
       if (item.type === "dir") {
         structure[item.name] = await getFolderStructure(item.url);
       } else if (item.type === "file") {
@@ -107,7 +117,7 @@ export async function downloadSubDirFromGitHub(url) {
   buildZipFromFolderStructure(await getFolderStructure(url))
     .generateAsync({ type: "blob" })
     .then(function (content) {
-      saveAs(content, MaterialsQuery.getSubDirName(url) + ".zip");
+      saveAs(content, MaterialsQuery.subDirNameFromSubDirUrl(url) + ".zip");
     });
 }
 
@@ -116,7 +126,7 @@ export async function downloadSubDirFromGitHub(url) {
  * @param {string} folderName
  */
 export async function downloadMaterialsFromWord(folderName) {
-  const url = MaterialsQuery.createApiUrlFromWord(folderName);
+  const url = MaterialsQuery.apiUrlFromWord(folderName);
 
   const resp = await getFolderStructure(url);
   buildZipFromFolderStructure(resp)

@@ -1,6 +1,6 @@
 import { RP_HOME, RP_MATERIALS_REPO_PATH } from "./query.js";
 
-export function noQueryScreen() {
+export function noQueryScreen(type) {
   // document.getElementById("download").remove();
 
   Array.from(document.querySelectorAll(".no-folder-hide")).forEach((node) => {
@@ -14,7 +14,14 @@ export function noQueryScreen() {
   // sourceCodeButton.innerText = "Browse the Source Code";
 
   const newNote = document.createElement("p");
-  newNote.innerText = `Something went wrong...`;
+  if (type == "API_RATE_LIMIT") {
+    newNote.innerText = `GitHub download quota exceeded...`;
+  } else if (type == "404") {
+    newNote.innerText = "Resource not found...";
+  } else {
+    newNote.innerText = `Something went wrong...`;
+  }
+
   newNote.classList.add("note");
 
   document

@@ -117,7 +117,7 @@ export class MaterialsQuery extends Query {
       case QUERY_TYPES.SUBDIR:
         this.downloadCallback = async () =>
           await downloadSubDirFromGitHub(
-            MaterialsQuery.buildSubDirURL(this.value)
+            MaterialsQuery.apiUrlFromSubDirUrl(this.value)
           );
         this.sourceCodeLink = this.value;
         break;
@@ -129,7 +129,7 @@ export class MaterialsQuery extends Query {
       //   break;
       case QUERY_TYPES.FILE:
         this.downloadCallback = () =>
-          downloadFileFromUrl(MaterialsQuery.buildFileURL(this.value));
+          downloadFileFromUrl(MaterialsQuery.apiUrlFromFileUrl(this.value));
         this.sourceCodeLink = this.value;
         break;
       // case QUERY_TYPES.WORD:
@@ -155,7 +155,7 @@ export class MaterialsQuery extends Query {
    * @param {string} classifiedQuery
    * @returns {string} direct download URL
    */
-  static buildZipURLFromRepoURL(classifiedQuery) {
+  static zipUrlFromRepoUrl(classifiedQuery) {
     return classifiedQuery + "/archive/master.zip";
   }
 
@@ -177,7 +177,7 @@ export class MaterialsQuery extends Query {
    * @param {string} classifiedQuery
    * @returns {string} Raw URL to download file directly
    */
-  static buildFileURL(classifiedQuery) {
+  static apiUrlFromFileUrl(classifiedQuery) {
     const url = new URL(classifiedQuery);
     const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
 
@@ -202,7 +202,7 @@ export class MaterialsQuery extends Query {
    * @param {string} classifiedQuery
    * @returns {string} API URL to retrieve top level contents of files and folders at [PATH]
    */
-  static buildSubDirURL(classifiedQuery) {
+  static apiUrlFromSubDirUrl(classifiedQuery) {
     const url = new URL(classifiedQuery);
     const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
     return (
@@ -217,11 +217,12 @@ export class MaterialsQuery extends Query {
    * @param {string} subDirUrl
    * @returns
    */
-  static getSubDirName(subDirUrl) {
+  static subDirNameFromSubDirUrl(subDirUrl) {
     const url = new URL(subDirUrl);
     const [_, user, repo, __, ...path] = url.pathname.split("/").slice(1);
-
-    return `${repo}-${path.join("-")}`;
+    if (path.length !== 0) {
+      return `${repo}-${path.join("-")}`;
+    } else return repo;
   }
 
   /**
@@ -242,15 +243,15 @@ export class MaterialsQuery extends Query {
    * @param {string} folderName
    * @returns {string} API URL to retrieve top level contents of files and folders at the [WORD] folder
    */
-  static createApiUrlFromWord(folderName) {
+  static apiUrlFromWord(folderName) {
     return `${GITHUB_API_ENDPOINT}/${RP_MATERIALS_REPO_PATH}/contents/${folderName}?ref=master`;
   }
 
-  static createSourceCodeUrlFromWord(word) {
+  static srcUrlFromWord(word) {
     return `https://github.com/${RP_MATERIALS_REPO_PATH}/${word}`;
   }
 
-  static getFileNameFromUrl(fileUrl) {
+  static fileNameFromUrl(fileUrl) {
     const url = new URL(fileUrl);
     const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
     return path.slice(-1);
@@ -264,9 +265,21 @@ export class MaterialsQuery extends Query {
    * @param {string} zipUrl
    * @returns {string}
    */
-  static convertZipLinkToSourceCode(zipUrl) {
+  static srcUrlfromZipUrl(zipUrl) {
     const url = new URL(zipUrl);
     const [user, repo, ...rest] = url.pathname.split("/").slice(1);
     return `https://github.com/${user}/${repo}`;
+  }
+
+  static apiUrlFromZipUrl(zipUrl) {
+    const url = new URL(zipUrl);
+    const [user, repo, ...rest] = url.pathname.split("/").slice(1);
+    return `${GITHUB_API_ENDPOINT}/${user}/${repo}/contents?ref=master`;
+  }
+
+  static apiUrlFromRepoUrl(repoUrl) {
+    const url = new URL(repoUrl);
+    const [user, repo] = url.pathname.split("/").slice(1);
+    return `${GITHUB_API_ENDPOINT}/${user}/${repo}/contents?ref=master`;
   }
 }
