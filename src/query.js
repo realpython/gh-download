@@ -21,16 +21,15 @@ export class UnsupportedHost extends Error {
 }
 
 export class Query {
-  constructor(text = null) {
-    if (text === null) this.value = Query.getQuery();
-    else if (text[0] === "?") this.value = text.slice(1);
-    else this.value = text;
+  constructor(key) {
+    if (key == null) throw new Error("Must provide query key");
+    this.value = Query.getQuery(key);
 
-    if (this.value == "") throw "No Query";
+    if (this.value == "" || this.value == null) throw "No Query";
   }
 
-  static getQuery() {
-    return decodeURIComponent(window.location.search.slice(1));
+  static getQuery(key) {
+    return new URLSearchParams(window.location.search).get("url");
   }
 
   static #setURL(newURL) {
@@ -52,7 +51,7 @@ export class Query {
 }
 
 export class MaterialsQuery extends Query {
-  constructor(text = null) {
+  constructor(text = Query.getQuery("url")) {
     super(text);
     this.type = MaterialsQuery.#classifyQuery(this.value);
     this.#buildDownloadCallback();
