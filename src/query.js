@@ -21,15 +21,12 @@ export class UnsupportedHost extends Error {
 }
 
 export class Query {
-  constructor(key) {
-    if (key == null) throw new Error("Must provide query key");
-    this.value = Query.getQuery(key);
-
-    if (this.value == "" || this.value == null) throw "No Query";
-  }
-
-  static getQuery(key) {
-    return new URLSearchParams(window.location.search).get("url");
+  constructor() {
+    this.params = new URLSearchParams(window.location.search);
+    const firstParam = this.params.entries().next().value;
+    if (firstParam == undefined || firstParam[1] == "" || firstParam[2] == "") {
+      throw new Error("Invalid query, no key-value pair");
+    }
   }
 
   static #setURL(newURL) {
@@ -51,35 +48,33 @@ export class Query {
 }
 
 export class MaterialsQuery extends Query {
-  constructor(text = Query.getQuery("url")) {
-    super(text);
-    this.type = MaterialsQuery.#classifyQuery(this.value);
+  constructor() {
+    super();
+    try {
+      this.materialUrl = new URL(this.params.get("url"));
+    } catch (e) {
+      throw new Error("Invalid URL");
+    }
+
+    this.path = this.materialUrl.pathname.split("/").slice(1);
+    this.type = MaterialsQuery.#classifyQuery(
+      this.materialUrl.hostname,
+      this.path
+    );
     this.#buildDownloadCallback();
   }
 
-  static #classifyQuery(query) {
-    try {
-      const url = new URL(query);
-      const path = url.pathname.split("/").slice(1);
+  static #classifyQuery(hostname, path) {
+    if (!VALID_HOSTS.includes(hostname)) throw new UnsupportedHost();
+    if (path.slice(-1)[0].match(".zip")) throw new Error("Can't be a zip file");
+    if (path.length === 2) throw new Error("Can't be a base repository");
 
-      if (!VALID_HOSTS.includes(url.hostname)) throw new UnsupportedHost();
-      if (path.slice(-1)[0].match(".zip"))
-        throw new Error("Can't be a zip file");
-      if (path.length === 2) throw new Error("Can't be a base repository");
-
-      if (path[2] === "tree") {
-        return QUERY_TYPES.SUBDIR;
-      } else if (path[2] === "blob") {
-        return QUERY_TYPES.FILE;
-      } else {
-        throw new Error("Can't classify this URL");
-      }
-    } catch (e) {
-      if (e instanceof UnsupportedHost) throw e;
-      if (e instanceof TypeError) {
-        throw new Error("Single words aren't valid queries");
-      }
-      throw e;
+    if (path[2] === "tree") {
+      return QUERY_TYPES.SUBDIR;
+    } else if (path[2] === "blob") {
+      return QUERY_TYPES.FILE;
+    } else {
+      throw new Error("Can't classify this URL");
     }
   }
 
@@ -88,17 +83,19 @@ export class MaterialsQuery extends Query {
       case QUERY_TYPES.SUBDIR:
         this.downloadCallback = async () =>
           await downloadSubDirFromGitHub(
-            MaterialsQuery.apiUrlFromSubDirUrl(this.value)
+            MaterialsQuery.apiUrlFromSubDirUrl(this.materialUrl)
           );
         break;
       case QUERY_TYPES.FILE:
         this.downloadCallback = () =>
-          downloadFileFromUrl(MaterialsQuery.apiUrlFromFileUrl(this.value));
+          downloadFileFromUrl(
+            MaterialsQuery.apiUrlFromFileUrl(this.materialUrl)
+          );
         break;
       default:
-        throw "Not recognized type";
+        throw new Error("Not recognized type");
     }
-    this.sourceCodeLink = this.value;
+    this.sourceCodeLink = this.materialUrl;
   }
 
   async download() {

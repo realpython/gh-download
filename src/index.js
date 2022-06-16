@@ -14,7 +14,7 @@ window.onload = async () => {
     } else if (e.message == "404") {
       noQueryScreen("404");
     } else {
-      console.log(e.message);
+      console.log(e);
       noQueryScreen();
     }
   }

@@ -27,8 +27,9 @@ import { MaterialsQuery } from "./query.js";
 
 /**
  * Get an array buffer from a raw source.
+ * @async
  * @param {string} url
- * @returns {ArrayBuffer}
+ * @returns {Promise<ArrayBuffer>}
  */
 async function getFileData(url) {
   const arrayBuffer = await fetch(url).then((r) => r.arrayBuffer());
@@ -48,9 +49,10 @@ export function downloadFileFromUrl(url) {
 /**
  * Recursively build a `folderStructure` by making requests to the GitHub API
  * for folder contents, and making requests to the `raw` endpoints for files.
+ * @async
  * @param {string} url
  * @param {object} structure
- * @returns {object} a `folderStructure`
+ * @returns {Promise<object>} a `folderStructure`
  */
 async function getFolderStructure(url, structure = null) {
   if (structure === null) structure = {};
@@ -101,6 +103,10 @@ function buildZipFromFolderStructure(folderStructure, zip = null) {
   return zip;
 }
 
+/**
+ * Must be github API url
+ * @param {string} url
+ */
 export async function downloadSubDirFromGitHub(url) {
   buildZipFromFolderStructure(await getFolderStructure(url))
     .generateAsync({ type: "blob" })
