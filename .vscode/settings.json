@@ -1,0 +1,7 @@
+{
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "html.format.wrapAttributes": "auto",
+  "html.format.wrapLineLength": 100,
+  "css.format.enable": true,
+}
