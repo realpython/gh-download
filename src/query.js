@@ -99,6 +99,7 @@ export class MaterialsQuery extends Query {
   }
 
   async download() {
+    console.log("Downloading");
     await this.downloadCallback();
     return [this.downloadCallback, this.sourceCodeLink];
   }

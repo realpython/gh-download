@@ -4,7 +4,7 @@ const RP_HOME = "https://www.realpython.com";
 export function noQueryScreen(type) {
   // document.getElementById("download").remove();
 
-  Array.from(document.querySelectorAll(".no-folder-hide")).forEach((node) => {
+  Array.from(document.querySelectorAll(".error-hide")).forEach((node) => {
     node.remove();
   });
 
@@ -25,11 +25,7 @@ export function noQueryScreen(type) {
 
   newNote.classList.add("note");
 
-  document
-    // .querySelector(".main-container")
-    .querySelector("#logo")
-    // .insertAdjacentElement(newNote, sourceCodeButton);
-    .insertAdjacentElement("afterend", newNote);
+  document.querySelector("#logo").insertAdjacentElement("afterend", newNote);
 
   document.getElementById("back-to-rp").addEventListener("click", () => {
     location.href = RP_HOME;
