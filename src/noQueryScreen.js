@@ -2,10 +2,32 @@ import { ERROR_TYPE } from "./error.js";
 
 const RP_MATERIALS_REPO_PATH = "realpython/materials";
 
-export function noQueryScreen(type) {
-  Array.from(document.querySelectorAll(".error-hide")).forEach((node) => {
-    node.remove();
+export function hideClass(selector) {
+  Array.from(document.querySelectorAll(selector)).forEach((node) => {
+    node.style.display = "none";
   });
+}
+
+export function revealClass(selector) {
+  Array.from(document.querySelectorAll(selector)).forEach((node) => {
+    node.style.display = "";
+  });
+}
+
+export function softHideClass(selector) {
+  Array.from(document.querySelectorAll(selector)).forEach((node) => {
+    node.style.opacity = "0.5";
+  });
+}
+
+export function softRevealClass(selector) {
+  Array.from(document.querySelectorAll(selector)).forEach((node) => {
+    node.style.opacity = "1";
+  });
+}
+
+export function noQueryScreen(type) {
+  hideClass(".error-hide");
 
   const sourceCodeButton = document.getElementById("src-code");
   sourceCodeButton.addEventListener("click", () => {
@@ -23,5 +45,7 @@ export function noQueryScreen(type) {
 
   newNote.classList.add("note");
 
-  document.querySelector("#logo").insertAdjacentElement("afterend", newNote);
+  document
+    .querySelector(".title-container")
+    .insertAdjacentElement("afterend", newNote);
 }
