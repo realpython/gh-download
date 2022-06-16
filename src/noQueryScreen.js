@@ -1,10 +1,9 @@
+import { ERROR_TYPE } from "./error.js";
+
 const RP_MATERIALS_REPO_PATH = "realpython/materials";
-const RP_HOME = "https://www.realpython.com";
 
 export function noQueryScreen(type) {
-  // document.getElementById("download").remove();
-
-  Array.from(document.querySelectorAll(".no-folder-hide")).forEach((node) => {
+  Array.from(document.querySelectorAll(".error-hide")).forEach((node) => {
     node.remove();
   });
 
@@ -12,12 +11,11 @@ export function noQueryScreen(type) {
   sourceCodeButton.addEventListener("click", () => {
     location.href = `https://www.github.com/${RP_MATERIALS_REPO_PATH}`;
   });
-  // sourceCodeButton.innerText = "Browse the Source Code";
 
   const newNote = document.createElement("p");
-  if (type == "API_RATE_LIMIT") {
+  if (type == ERROR_TYPE.API_LIMIT) {
     newNote.innerText = `GitHub download quota exceeded...`;
-  } else if (type == "404") {
+  } else if (type == ERROR_TYPE.NOT_FOUND) {
     newNote.innerText = "Resource not found...";
   } else {
     newNote.innerText = `Something went wrong...`;
@@ -25,13 +23,5 @@ export function noQueryScreen(type) {
 
   newNote.classList.add("note");
 
-  document
-    // .querySelector(".main-container")
-    .querySelector("#logo")
-    // .insertAdjacentElement(newNote, sourceCodeButton);
-    .insertAdjacentElement("afterend", newNote);
-
-  document.getElementById("back-to-rp").addEventListener("click", () => {
-    location.href = RP_HOME;
-  });
+  document.querySelector("#logo").insertAdjacentElement("afterend", newNote);
 }

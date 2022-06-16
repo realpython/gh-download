@@ -2,6 +2,7 @@ import { MaterialsQuery } from "./query.js";
 
 import { initializeButtons } from "./initializeButtons.js";
 import { noQueryScreen } from "./noQueryScreen.js";
+import { ERROR_TYPE } from "./error.js";
 
 window.onload = async () => {
   try {
@@ -9,10 +10,10 @@ window.onload = async () => {
     const [downloadCallback, sourceCodeLink] = await materialsQuery.download();
     initializeButtons(downloadCallback, sourceCodeLink);
   } catch (e) {
-    if (e.message.includes("API rate limit")) {
-      noQueryScreen("API_RATE_LIMIT");
-    } else if (e.message == "404") {
-      noQueryScreen("404");
+    if (e.message == ERROR_TYPE.API_LIMIT) {
+      noQueryScreen(ERROR_TYPE.API_LIMIT);
+    } else if (e.message == ERROR_TYPE.NOT_FOUND) {
+      noQueryScreen(ERROR_TYPE.NOT_FOUND);
     } else {
       console.log(e);
       noQueryScreen();
