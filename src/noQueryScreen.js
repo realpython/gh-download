@@ -1,4 +1,5 @@
-import { RP_HOME, RP_MATERIALS_REPO_PATH } from "./query.js";
+const RP_MATERIALS_REPO_PATH = "realpython/materials";
+const RP_HOME = "https://www.realpython.com";
 
 export function noQueryScreen(type) {
   // document.getElementById("download").remove();

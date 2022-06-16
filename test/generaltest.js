@@ -1,5 +1,3 @@
-import { downloadUrlWithIFrame } from "../src/download.js";
-
 function test() {
   // setQuery("generators");
   // if (getQuery() !== "?generators") {

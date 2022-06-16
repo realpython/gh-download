@@ -1,33 +1,12 @@
-import {
-  downloadFileFromUrl,
-  downloadUrlWithIFrame,
-  downloadSubDirFromGitHub,
-  downloadMaterialsFromWord,
-} from "./download.js";
+import { downloadFileFromUrl, downloadSubDirFromGitHub } from "./download.js";
 
-export const RP_MATERIALS_REPO_PATH = "realpython/materials";
-export const RP_HOME = "https://www.realpython.com";
 const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
 const GITHUB_RAW_ENDPOINT = "https://raw.githubusercontent.com";
 const VALID_HOSTS = ["github.com"];
 
 export const QUERY_TYPES = {
-  // https://github.com/[USER]/[REPO]
-  REPO: "REPO",
-
-  // https://github.com/[USER]/[REPO]/tree/[SHA_OR_BRANCH]/[OPTIONAL_PATH_TO_SUBDIR]
-  // SUBDIR can also be the root folder but at a branch or commit other than master/main
   SUBDIR: "SUBDIR",
-
-  // https://github.com/[USER]/[REPO]/archive/master.zip
-  // TODO - check this for "main"
-  ZIP: "ZIP",
-
-  // https://github.com/[USER]/[REPO]/blob/[SHA_OR_BRANCH]/[PATH_TO_FILE]
   FILE: "FILE",
-
-  // [FOLDER_IN_MATERIALS_REPO]
-  WORD: "WORD",
 };
 
 export class UnsupportedHost extends Error {
@@ -42,16 +21,12 @@ export class UnsupportedHost extends Error {
 }
 
 export class Query {
-  constructor(text = null) {
-    if (text === null) this.value = Query.getQuery();
-    else if (text[0] === "?") this.value = text.slice(1);
-    else this.value = text;
-
-    if (this.value == "") throw "No Query";
-  }
-
-  static getQuery() {
-    return decodeURIComponent(window.location.search.slice(1));
+  constructor() {
+    this.params = new URLSearchParams(window.location.search);
+    const firstParam = this.params.entries().next().value;
+    if (firstParam == undefined || firstParam[1] == "" || firstParam[2] == "") {
+      throw new Error("Invalid query, no key-value pair");
+    }
   }
 
   static #setURL(newURL) {
@@ -73,87 +48,59 @@ export class Query {
 }
 
 export class MaterialsQuery extends Query {
-  constructor(text = null) {
-    super(text);
-    this.type = MaterialsQuery.#classifyQuery(this.value);
+  constructor() {
+    super();
+    try {
+      this.materialUrl = new URL(this.params.get("url"));
+    } catch (e) {
+      throw new Error("Invalid URL");
+    }
+
+    this.path = this.materialUrl.pathname.split("/").slice(1);
+    this.type = MaterialsQuery.#classifyQuery(
+      this.materialUrl.hostname,
+      this.path
+    );
     this.#buildDownloadCallback();
   }
 
-  static #classifyQuery(query) {
-    try {
-      const url = new URL(query);
+  static #classifyQuery(hostname, path) {
+    if (!VALID_HOSTS.includes(hostname)) throw new UnsupportedHost();
+    if (path.slice(-1)[0].match(".zip")) throw new Error("Can't be a zip file");
+    if (path.length === 2) throw new Error("Can't be a base repository");
 
-      if (!VALID_HOSTS.includes(url.hostname)) throw new UnsupportedHost();
-
-      const path = url.pathname.split("/").slice(1);
-
-      if (path.length === 2) {
-        return QUERY_TYPES.REPO;
-      } else if (path.slice(-1)[0].match(".zip")) {
-        return QUERY_TYPES.ZIP;
-      } else if (path[2] === "tree") {
-        return QUERY_TYPES.SUBDIR;
-      } else if (path[2] === "blob") {
-        return QUERY_TYPES.FILE;
-      }
-    } catch (e) {
-      if (e instanceof UnsupportedHost) throw e;
-      if (e instanceof TypeError) {
-        return QUERY_TYPES.WORD;
-      }
-      throw e;
+    if (path[2] === "tree") {
+      return QUERY_TYPES.SUBDIR;
+    } else if (path[2] === "blob") {
+      return QUERY_TYPES.FILE;
+    } else {
+      throw new Error("Can't classify this URL");
     }
   }
 
   #buildDownloadCallback() {
     switch (this.type) {
-      case QUERY_TYPES.REPO:
-        this.downloadCallback = () =>
-          downloadSubDirFromGitHub(
-            MaterialsQuery.apiUrlFromRepoUrl(this.value)
-          );
-        this.sourceCodeLink = this.value;
-        break;
       case QUERY_TYPES.SUBDIR:
         this.downloadCallback = async () =>
           await downloadSubDirFromGitHub(
-            MaterialsQuery.apiUrlFromSubDirUrl(this.value)
+            MaterialsQuery.apiUrlFromSubDirUrl(this.materialUrl)
           );
-        this.sourceCodeLink = this.value;
-        break;
-      case QUERY_TYPES.ZIP:
-        this.downloadCallback = () =>
-          downloadSubDirFromGitHub(MaterialsQuery.apiUrlFromZipUrl(this.value));
-        this.sourceCodeLink = MaterialsQuery.srcUrlfromZipUrl(this.value);
         break;
       case QUERY_TYPES.FILE:
         this.downloadCallback = () =>
-          downloadFileFromUrl(MaterialsQuery.apiUrlFromFileUrl(this.value));
-        this.sourceCodeLink = this.value;
-        break;
-      case QUERY_TYPES.WORD:
-        this.downloadCallback = async () =>
-          await downloadMaterialsFromWord(this.value);
-        this.sourceCodeLink = MaterialsQuery.srcUrlFromWord(this.value);
+          downloadFileFromUrl(
+            MaterialsQuery.apiUrlFromFileUrl(this.materialUrl)
+          );
         break;
       default:
-        throw "Not recognized type";
+        throw new Error("Not recognized type");
     }
+    this.sourceCodeLink = this.materialUrl;
   }
 
   async download() {
     await this.downloadCallback();
     return [this.downloadCallback, this.sourceCodeLink];
-  }
-
-  /**
-   * Converts main GitHub repository URL to direct link to ZIP archive of master branch
-   * Basically adds "/archive/master.zip" to the end.
-   * @param {string} classifiedQuery
-   * @returns {string} direct download URL
-   */
-  static zipUrlFromRepoUrl(classifiedQuery) {
-    return classifiedQuery + "/archive/master.zip";
   }
 
   /**
@@ -171,11 +118,11 @@ export class MaterialsQuery extends Query {
    *
    * `[PATH]` is optional
    *
-   * @param {string} classifiedQuery
+   * @param {string} apiUrl
    * @returns {string} Raw URL to download file directly
    */
-  static apiUrlFromFileUrl(classifiedQuery) {
-    const url = new URL(classifiedQuery);
+  static apiUrlFromFileUrl(apiUrl) {
+    const url = new URL(apiUrl);
     const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
 
     return `${GITHUB_RAW_ENDPOINT}/${user}/${repo}/${commit}/${path.join("/")}`;
@@ -196,11 +143,11 @@ export class MaterialsQuery extends Query {
    *
    * `[PATH]` is optional
    *
-   * @param {string} classifiedQuery
+   * @param {string} apiUrl
    * @returns {string} API URL to retrieve top level contents of files and folders at [PATH]
    */
-  static apiUrlFromSubDirUrl(classifiedQuery) {
-    const url = new URL(classifiedQuery);
+  static apiUrlFromSubDirUrl(apiUrl) {
+    const url = new URL(apiUrl);
     const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
     return (
       `${GITHUB_API_ENDPOINT}/` +
@@ -222,61 +169,9 @@ export class MaterialsQuery extends Query {
     } else return repo;
   }
 
-  /**
-   * Create Real Python API URL from [WORD]
-   *
-   * From:
-   *
-   * ```
-   * [WORD]
-   * ```
-   *
-   * To:
-   *
-   * ```
-   * https://api.github.com/repos/realpython/materials/contents/[WORD]?ref=master
-   * ```
-   *
-   * @param {string} folderName
-   * @returns {string} API URL to retrieve top level contents of files and folders at the [WORD] folder
-   */
-  static apiUrlFromWord(folderName) {
-    return `${GITHUB_API_ENDPOINT}/${RP_MATERIALS_REPO_PATH}/contents/${folderName}?ref=master`;
-  }
-
-  static srcUrlFromWord(word) {
-    return `https://github.com/${RP_MATERIALS_REPO_PATH}/${word}`;
-  }
-
   static fileNameFromUrl(fileUrl) {
     const url = new URL(fileUrl);
     const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
     return path.slice(-1);
-  }
-
-  /**
-   * https://github.com/[USER]/[REPO]/archive/master.zip
-   * to
-   * https://github.com/[USER]/[REPO]
-   *
-   * @param {string} zipUrl
-   * @returns {string}
-   */
-  static srcUrlfromZipUrl(zipUrl) {
-    const url = new URL(zipUrl);
-    const [user, repo, ...rest] = url.pathname.split("/").slice(1);
-    return `https://github.com/${user}/${repo}`;
-  }
-
-  static apiUrlFromZipUrl(zipUrl) {
-    const url = new URL(zipUrl);
-    const [user, repo, ...rest] = url.pathname.split("/").slice(1);
-    return `${GITHUB_API_ENDPOINT}/${user}/${repo}/contents?ref=master`;
-  }
-
-  static apiUrlFromRepoUrl(repoUrl) {
-    const url = new URL(repoUrl);
-    const [user, repo] = url.pathname.split("/").slice(1);
-    return `${GITHUB_API_ENDPOINT}/${user}/${repo}/contents?ref=master`;
   }
 }

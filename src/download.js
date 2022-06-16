@@ -27,8 +27,9 @@ import { MaterialsQuery } from "./query.js";
 
 /**
  * Get an array buffer from a raw source.
+ * @async
  * @param {string} url
- * @returns {ArrayBuffer}
+ * @returns {Promise<ArrayBuffer>}
  */
 async function getFileData(url) {
   const arrayBuffer = await fetch(url).then((r) => r.arrayBuffer());
@@ -36,21 +37,9 @@ async function getFileData(url) {
 }
 
 /**
- * Open a link in an invisible IFrame to download it.
- * Only works for GitHub ZIP archives.
- * @param {string} url
- */
-export function downloadUrlWithIFrame(url) {
-  const iframe = document.createElement("iframe");
-  iframe.src = url;
-  iframe.style.display = "none";
-  document.body.appendChild(iframe);
-}
-
-/**
  * Downloads a file from a url saving it as the last element of the main URL
  * https://github.com/.../[FILE_NAME]
- * Does not work for GitHub ZIP archives see {@link downloadUrlWithIFrame}
+ * Does not work for GitHub ZIP archive URLs
  * @param {string} url
  */
 export function downloadFileFromUrl(url) {
@@ -60,9 +49,10 @@ export function downloadFileFromUrl(url) {
 /**
  * Recursively build a `folderStructure` by making requests to the GitHub API
  * for folder contents, and making requests to the `raw` endpoints for files.
+ * @async
  * @param {string} url
  * @param {object} structure
- * @returns {object} a `folderStructure`
+ * @returns {Promise<object>} a `folderStructure`
  */
 async function getFolderStructure(url, structure = null) {
   if (structure === null) structure = {};
@@ -113,25 +103,14 @@ function buildZipFromFolderStructure(folderStructure, zip = null) {
   return zip;
 }
 
+/**
+ * Must be github API url
+ * @param {string} url
+ */
 export async function downloadSubDirFromGitHub(url) {
   buildZipFromFolderStructure(await getFolderStructure(url))
     .generateAsync({ type: "blob" })
     .then(function (content) {
       saveAs(content, MaterialsQuery.subDirNameFromSubDirUrl(url) + ".zip");
-    });
-}
-
-/**
- * Fetch folder from materials repository, build a ZIP archive and download it.
- * @param {string} folderName
- */
-export async function downloadMaterialsFromWord(folderName) {
-  const url = MaterialsQuery.apiUrlFromWord(folderName);
-
-  const resp = await getFolderStructure(url);
-  buildZipFromFolderStructure(resp)
-    .generateAsync({ type: "blob" })
-    .then(function (content) {
-      saveAs(content, folderName + ".zip");
     });
 }
