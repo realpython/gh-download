@@ -18,9 +18,7 @@ describe("Classify URLs", function () {
     global.window = getWindowWithUrlQuery(
       "https://github.com/rahmonov/alcazar"
     );
-    assert.throws(function () {
-      new MaterialsQuery().type;
-    }, Error);
+    assert.equal(new MaterialsQuery().type, QUERY_TYPES.BASE_REPO);
   });
 
   it("should classify SUBDIR URL master branch", function () {
@@ -41,9 +39,7 @@ describe("Classify URLs", function () {
     global.window = getWindowWithUrlQuery(
       "https://github.com/realpython/dockerizing-django/archive/master.zip"
     );
-    assert.throws(function () {
-      new MaterialsQuery();
-    }, Error);
+    assert.equal(new MaterialsQuery().type, QUERY_TYPES.ZIP);
   });
 
   it("should classify FILE URL", function () {
@@ -122,7 +118,7 @@ describe("Build File URLs", function () {
   });
 
   it("should create API url from SHA specified whole repo", function () {
-    assert.equal(
+    assert.strictEqual(
       MaterialsQuery.apiUrlFromSubDirUrl(
         "https://github.com/realpython/dockerizing-django/tree/d3dc0dd9d2450f51c75337083edcdd4597f4ec1d"
       ),
@@ -131,11 +127,20 @@ describe("Build File URLs", function () {
   });
 
   it("should create API url from named branch whole repo", function () {
-    assert.equal(
+    assert.strictEqual(
       MaterialsQuery.apiUrlFromSubDirUrl(
         "https://github.com/realpython/flask-boilerplate/tree/updated"
       ),
       "https://api.github.com/repos/realpython/flask-boilerplate/contents/?ref=updated"
+    );
+  });
+
+  it("should grab the file name from a file url", function () {
+    assert.strictEqual(
+      MaterialsQuery.fileNameFromUrl(
+        "https://github.com/realpython/materials/blob/d10ccf9e4451c1dbe99d9d3d06ea794bcb90188f/python-eval-mathrepl/mathrepl.py"
+      ),
+      "mathrepl.py"
     );
   });
 });

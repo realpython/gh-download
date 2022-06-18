@@ -42,8 +42,10 @@ async function getFileData(url) {
  * Does not work for GitHub ZIP archive URLs
  * @param {string} url
  */
-export function downloadFileFromUrl(url) {
-  saveAs(url, MaterialsQuery.fileNameFromUrl(url));
+export async function downloadFileFromUrl(url) {
+  await fetch(url)
+    .then((response) => response.blob())
+    .then((blob) => saveAs(blob, MaterialsQuery.fileNameFromUrl(url)));
 }
 
 /**
