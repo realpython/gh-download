@@ -2,7 +2,7 @@ import { ERROR_TYPE } from "./error.js";
 
 const RP_MATERIALS_REPO_PATH = "realpython/materials";
 
-export function noQueryScreen(type) {
+export function errorScreen(type) {
   Array.from(document.querySelectorAll(".error-hide")).forEach((node) => {
     node.remove();
   });

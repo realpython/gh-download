@@ -2,11 +2,14 @@ import { downloadFileFromUrl, downloadSubDirFromGitHub } from "./download.js";
 
 const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
 const GITHUB_RAW_ENDPOINT = "https://raw.githubusercontent.com";
+const GITHUB_ROOT = "https://github.com";
 const VALID_HOSTS = ["github.com"];
 
 export const QUERY_TYPES = {
   SUBDIR: "SUBDIR",
   FILE: "FILE",
+  ZIP: "ZIP",
+  BASE_REPO: "BASE_REPO",
 };
 
 export class UnsupportedHost extends Error {
@@ -61,47 +64,66 @@ export class MaterialsQuery extends Query {
       this.materialUrl.hostname,
       this.path
     );
-    this.#buildDownloadCallback();
+
+    try {
+      this.downloadCallback = this.getDownloadCallback();
+    } catch (e) {
+      console.log(e.message);
+      this.downloadCallback = null;
+    }
   }
 
   static #classifyQuery(hostname, path) {
     if (!VALID_HOSTS.includes(hostname)) throw new UnsupportedHost();
-    if (path.slice(-1)[0].match(".zip")) throw new Error("Can't be a zip file");
-    if (path.length === 2) throw new Error("Can't be a base repository");
 
     if (path[2] === "tree") {
       return QUERY_TYPES.SUBDIR;
     } else if (path[2] === "blob") {
       return QUERY_TYPES.FILE;
+    } else if (path.slice(-1)[0].match(".zip")) {
+      return QUERY_TYPES.ZIP;
+    } else if (path.length === 2) {
+      return QUERY_TYPES.BASE_REPO;
     } else {
       throw new Error("Can't classify this URL");
     }
   }
 
-  #buildDownloadCallback() {
+  getSourceCodeLink() {
+    if (this.type === QUERY_TYPES.ZIP) {
+      return MaterialsQuery.srcUrlFromZipUrl(this.materialUrl);
+    } else if (Object.values(QUERY_TYPES).includes(this.type)) {
+      return this.materialUrl;
+    } else {
+      return null;
+    }
+  }
+
+  getDownloadCallback() {
     switch (this.type) {
       case QUERY_TYPES.SUBDIR:
-        this.downloadCallback = async () =>
+        return async () => {
+          console.log("Downloading");
           await downloadSubDirFromGitHub(
             MaterialsQuery.apiUrlFromSubDirUrl(this.materialUrl)
           );
-        break;
+        };
+
       case QUERY_TYPES.FILE:
-        this.downloadCallback = () =>
-          downloadFileFromUrl(
+        return async () => {
+          console.log("Downloading");
+          await downloadFileFromUrl(
             MaterialsQuery.apiUrlFromFileUrl(this.materialUrl)
           );
-        break;
+        };
+
       default:
-        throw new Error("Not recognized type");
+        throw new Error("Not downloadable type");
     }
-    this.sourceCodeLink = this.materialUrl;
   }
 
   async download() {
-    console.log("Downloading");
     await this.downloadCallback();
-    return [this.downloadCallback, this.sourceCodeLink];
   }
 
   /**
@@ -165,14 +187,19 @@ export class MaterialsQuery extends Query {
   static subDirNameFromSubDirUrl(subDirUrl) {
     const url = new URL(subDirUrl);
     const [_, user, repo, __, ...path] = url.pathname.split("/").slice(1);
-    if (path.length !== 0) {
+    if (path.length !== 0 && path[0] != "") {
       return `${repo}-${path.join("-")}`;
     } else return repo;
   }
 
   static fileNameFromUrl(fileUrl) {
     const url = new URL(fileUrl);
-    const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
-    return path.slice(-1);
+    return url.pathname.split("/").slice(-1)[0];
+  }
+
+  static srcUrlFromZipUrl(zipUrl) {
+    const url = new URL(zipUrl);
+    const [user, repo, ...rest] = url.pathname.split("/").slice(1);
+    return `${GITHUB_ROOT}/${user}/${repo}`;
   }
 }
