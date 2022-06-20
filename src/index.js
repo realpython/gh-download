@@ -16,6 +16,7 @@ window.onload = async () => {
       errorScreen(ERROR_TYPE.API_LIMIT);
     } else if (e.message == ERROR_TYPE.NOT_FOUND) {
       errorScreen(ERROR_TYPE.NOT_FOUND);
+      hydrateSourceCodeButton(FALLBACK_URL);
     } else {
       console.log(e);
       errorScreen();
