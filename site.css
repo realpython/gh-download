@@ -65,9 +65,6 @@ button, #src-code, #back-to-rp {
 a {
   color: #6F61AD;
   text-decoration: none;
-} a:hover{
-  text-decoration: none;
-  color: #61AD64;
 }
 
 #logo {

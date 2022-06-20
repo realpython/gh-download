@@ -4,6 +4,8 @@ const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
 const GITHUB_RAW_ENDPOINT = "https://raw.githubusercontent.com";
 const GITHUB_ROOT = "https://github.com";
 const VALID_HOSTS = ["github.com"];
+// href in link in index.html should be initialized to this
+export const FALLBACK_URL = "https://github.com/realpython/materials";
 
 export const QUERY_TYPES = {
   SUBDIR: "SUBDIR",
@@ -95,7 +97,7 @@ export class MaterialsQuery extends Query {
     } else if (Object.values(QUERY_TYPES).includes(this.type)) {
       return this.materialUrl;
     } else {
-      return null;
+      return new URL(FALLBACK_URL);
     }
   }
 
@@ -199,7 +201,7 @@ export class MaterialsQuery extends Query {
 
   static srcUrlFromZipUrl(zipUrl) {
     const url = new URL(zipUrl);
-    const [user, repo, ...rest] = url.pathname.split("/").slice(1);
+    const [user, repo] = url.pathname.split("/").slice(1);
     return `${GITHUB_ROOT}/${user}/${repo}`;
   }
 }

@@ -1,3 +1,5 @@
+import { FALLBACK_URL } from "./query.js";
+
 export function hydrateDownloadButton(downloadCallback) {
   document
     .getElementById("download")
@@ -5,9 +7,7 @@ export function hydrateDownloadButton(downloadCallback) {
 }
 
 export function hydrateSourceCodeButton(sourceCodeLink, force = false) {
-  const button = document.getElementById("src-code");
+  const link = document.getElementById("src-code");
 
-  if (button.href == window.location || force == true) {
-    button.href = sourceCodeLink;
-  }
+  link.href = new URL(sourceCodeLink);
 }

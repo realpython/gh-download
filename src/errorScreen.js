@@ -7,11 +7,6 @@ export function errorScreen(type) {
     node.remove();
   });
 
-  const sourceCodeButton = document.getElementById("src-code");
-  sourceCodeButton.addEventListener("click", () => {
-    location.href = `https://www.github.com/${RP_MATERIALS_REPO_PATH}`;
-  });
-
   const newNote = document.createElement("p");
   if (type == ERROR_TYPE.API_LIMIT) {
     newNote.innerText = `GitHub download quota exceeded...`;
