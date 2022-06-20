@@ -1,4 +1,8 @@
-import { downloadFileFromUrl, downloadSubDirFromGitHub } from "./download.js";
+import {
+  downloadFileFromUrl,
+  downloadSubDirFromGitHub,
+  getContents,
+} from "./download.js";
 
 const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
 const GITHUB_RAW_ENDPOINT = "https://raw.githubusercontent.com";
@@ -91,9 +95,13 @@ export class MaterialsQuery extends Query {
     }
   }
 
-  getSourceCodeLink() {
+  async getSourceCodeLink() {
     if (this.type === QUERY_TYPES.ZIP) {
+      await getContents(MaterialsQuery.apiUrlFromZipUrl(this.materialUrl));
       return MaterialsQuery.srcUrlFromZipUrl(this.materialUrl);
+    } else if (this.type === QUERY_TYPES.BASE_REPO) {
+      await getContents(MaterialsQuery.apiUrlFromRepoUrl(this.materialUrl));
+      return this.materialUrl;
     } else if (Object.values(QUERY_TYPES).includes(this.type)) {
       return this.materialUrl;
     } else {
@@ -203,5 +211,21 @@ export class MaterialsQuery extends Query {
     const url = new URL(zipUrl);
     const [user, repo] = url.pathname.split("/").slice(1);
     return `${GITHUB_ROOT}/${user}/${repo}`;
+  }
+
+  static apiUrlFromZipUrl(zipUrl) {
+    const url = new URL(zipUrl);
+    const [user, repo] = url.pathname.split("/").slice(1);
+    return `${GITHUB_API_ENDPOINT}/${user}/${repo}/contents?ref=master`;
+  }
+
+  static apiUrlFromRepoUrl(repoUrl) {
+    const url = new URL(repoUrl);
+    const [user, repo] = url.pathname.split("/").slice(1);
+    return `${GITHUB_API_ENDPOINT}/${user}/${repo}/contents?ref=master`;
+  }
+
+  static zipUrlFromRepoUrl(classifiedQuery) {
+    return classifiedQuery + "/archive/master.zip";
   }
 }

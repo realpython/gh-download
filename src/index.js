@@ -7,7 +7,7 @@ import { ERROR_TYPE } from "./error.js";
 window.onload = async () => {
   try {
     const materialsQuery = new MaterialsQuery();
-    const srcCodeLink = materialsQuery.getSourceCodeLink();
+    const srcCodeLink = await materialsQuery.getSourceCodeLink();
     hydrateSourceCodeButton(srcCodeLink);
     hydrateDownloadButton(materialsQuery.downloadCallback);
     await materialsQuery.download();

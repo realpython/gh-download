@@ -17,7 +17,7 @@ http://127.0.0.1:5500/index.html?https%3A%2F%2Fgithub.com%2Frealpython%2Fmateria
 Invalid url:
 http://127.0.0.1:5500/index.html?url=htt%2Frealpython%2Fmaterials%2Ftree%2Fmaster%2Fpython-yaml
 
-404 will break:
+404:
 http://127.0.0.1:5500/index.html?url=https%3A%2F%2Fgithub.com%2FrealpythoONONONn%2Fmaterials%2Ftree%2Fmaster%2Fpython-yaml
 
 These bad links will break the "browse source code" button:

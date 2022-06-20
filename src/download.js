@@ -49,17 +49,7 @@ export async function downloadFileFromUrl(url) {
     .then((blob) => saveAs(blob, MaterialsQuery.fileNameFromUrl(url)));
 }
 
-/**
- * Recursively build a `folderStructure` by making requests to the GitHub API
- * for folder contents, and making requests to the `raw` endpoints for files.
- * @async
- * @param {string} url
- * @param {object} structure
- * @returns {Promise<object>} a `folderStructure`
- */
-async function getFolderStructure(url, structure = null) {
-  if (structure === null) structure = {};
-
+export async function getContents(url) {
   const resp = await fetch(url);
   const json = await resp.json();
   if (resp.ok === false) {
@@ -71,6 +61,21 @@ async function getFolderStructure(url, structure = null) {
       throw new Error();
     }
   }
+  return json;
+}
+
+/**
+ * Recursively build a `folderStructure` by making requests to the GitHub API
+ * for folder contents, and making requests to the `raw` endpoints for files.
+ * @async
+ * @param {string} url
+ * @param {object} structure
+ * @returns {Promise<object>} a `folderStructure`
+ */
+async function getFolderStructure(url, structure = null) {
+  if (structure === null) structure = {};
+
+  const json = await getContents(url);
 
   await Promise.all(
     json.map(async (item) => {
@@ -116,4 +121,16 @@ export async function downloadSubDirFromGitHub(url) {
     .then(function (content) {
       saveAs(content, MaterialsQuery.subDirNameFromSubDirUrl(url) + ".zip");
     });
+}
+
+/**
+ * Open a link in an invisible IFrame to download it.
+ * Only works for GitHub ZIP archives.
+ * @param {string} url
+ */
+export function downloadUrlWithIFrame(url) {
+  const iframe = document.createElement("iframe");
+  iframe.src = url;
+  iframe.style.display = "none";
+  document.body.appendChild(iframe);
 }
