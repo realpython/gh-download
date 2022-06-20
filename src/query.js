@@ -70,7 +70,6 @@ export class MaterialsQuery extends Query {
     try {
       this.downloadCallback = this.getDownloadCallback();
     } catch (e) {
-      console.log(e.message);
       this.downloadCallback = null;
     }
   }
