@@ -24,6 +24,7 @@
  */
 
 import { MaterialsQuery } from "./query.js";
+import { ERROR_TYPE } from "./error.js";
 
 /**
  * Get an array buffer from a raw source.

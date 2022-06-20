@@ -91,10 +91,12 @@ export class MaterialsQuery extends Query {
 
   getSourceCodeLink() {
     if (this.type === QUERY_TYPES.ZIP) {
-      return this.srcUrlFromZipUrl(this.materialUrl);
+      return MaterialsQuery.srcUrlFromZipUrl(this.materialUrl);
+    } else if (Object.values(QUERY_TYPES).includes(this.type)) {
+      return this.materialUrl;
+    } else {
+      return null;
     }
-
-    return this.materialUrl;
   }
 
   getDownloadCallback() {
@@ -192,8 +194,6 @@ export class MaterialsQuery extends Query {
 
   static fileNameFromUrl(fileUrl) {
     const url = new URL(fileUrl);
-    // const [user, repo, _, commit, ...path] = url.pathname.split("/").slice(1);
-    // return path.slice(-1);
     return url.pathname.split("/").slice(-1)[0];
   }
 
