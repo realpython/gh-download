@@ -6,6 +6,25 @@ import {
 } from "../src/query.js";
 import { JSDOM } from "jsdom";
 import assert from "assert";
+import fetch, {
+  Blob,
+  blobFrom,
+  blobFromSync,
+  File,
+  fileFrom,
+  fileFromSync,
+  FormData,
+  Headers,
+  Request,
+  Response,
+} from "node-fetch";
+
+if (!globalThis.fetch) {
+  globalThis.fetch = fetch;
+  globalThis.Headers = Headers;
+  globalThis.Request = Request;
+  globalThis.Response = Response;
+}
 
 function getWindowWithUrlQuery(urlQuery) {
   return new JSDOM(``, {
@@ -88,7 +107,7 @@ describe("Classify URLs", function () {
       url: "https://hackhub.com/rahmonov/alcazar",
       expectType: Error,
       expectSrcCodeUrl: Error,
-      expectDownloadCallback: true,
+      expectDownloadCallback: Error,
     }),
     // new QueryTest({
     //   url: "",
@@ -110,20 +129,20 @@ describe("Classify URLs", function () {
       }
     });
 
-    it(`${test.url} should have source download link of ${test.expectSrcCodeUrl}`, function () {
+    it(`${test.url} should have source download link of ${test.expectSrcCodeUrl}`, async function () {
       global.window = getWindowWithUrlQuery(test.url);
       if (test.expectType == Error) {
-        assert.throws(function () {
-          new MaterialsQuery();
-        }, test.expectType);
+        assert.rejects(async function () {
+          await new MaterialsQuery().getSourceCodeLink();
+        });
       } else if (test.expectSrcCodeUrl !== null) {
         assert.equal(
-          new MaterialsQuery().getSourceCodeLink(),
+          await new MaterialsQuery().getSourceCodeLink(),
           test.expectSrcCodeUrl
         );
       } else {
         assert.equal(
-          new MaterialsQuery().getSourceCodeLink(),
+          await new MaterialsQuery().getSourceCodeLink(),
           test.expectSrcCodeUrl
         );
       }
@@ -133,12 +152,11 @@ describe("Classify URLs", function () {
       test.expectDownloadCallback ? " " : " NOT "
     }have download callback`, function () {
       global.window = getWindowWithUrlQuery(test.url);
-      if (test.expectType == Error) {
+      if (test.expectDownloadCallback == Error) {
         assert.throws(function () {
           new MaterialsQuery();
-        }, test.expectType);
+        }, Error);
       } else {
-        console.log(new MaterialsQuery().downloadCallback);
         assert.strictEqual(
           new MaterialsQuery().downloadCallback instanceof Function,
           test.expectDownloadCallback
