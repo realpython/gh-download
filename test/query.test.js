@@ -45,29 +45,44 @@ class QueryTest {
     this.expectValue = expectValue;
     this.expectSrcCodeUrl = expectSrcCodeUrl;
     this.expectDownloadCallback = expectDownloadCallback;
+
+    if (
+      (Error.isPrototypeOf(expectType) || expectType === Error) &&
+      (this.expectSrcCodeUrl !== undefined ||
+        this.expectDownloadCallback !== undefined)
+    ) {
+      throw new Error(
+        "If fails on initialization no point in expecting srccode or downloadcallback"
+      );
+    }
+
+    if (
+      this.expectDownloadCallback !== undefined &&
+      typeof this.expectDownloadCallback !== "boolean"
+    ) {
+      throw new Error("expectDownloadCallback can only be true or false");
+    }
   }
 }
 
-describe("Classify URLs", function () {
+describe("Query 'url' parameter", function () {
   const tests = [
     new QueryTest({
       url: "https://github.com/rahmonov/alcazar",
       expectType: QUERY_TYPES.BASE_REPO,
-      expectSrcCodeUrl: "https://github.com/rahmonov/alcazar",
+      expectSrcCodeUrl: "same",
       expectDownloadCallback: false,
     }),
     new QueryTest({
       url: "https://github.com/realpython/materials/tree/master/python-yaml",
       expectType: QUERY_TYPES.SUBDIR,
-      expectSrcCodeUrl:
-        "https://github.com/realpython/materials/tree/master/python-yaml",
+      expectSrcCodeUrl: "same",
       expectDownloadCallback: true,
     }),
     new QueryTest({
       url: "https://github.com/realpython/materials/tree/7010df1c142cefe717be3ccb406b914b7cd5677e/web-scraping-bs4",
       expectType: QUERY_TYPES.SUBDIR,
-      expectSrcCodeUrl:
-        "https://github.com/realpython/materials/tree/7010df1c142cefe717be3ccb406b914b7cd5677e/web-scraping-bs4",
+      expectSrcCodeUrl: "same",
       expectDownloadCallback: true,
     }),
     new QueryTest({
@@ -79,35 +94,28 @@ describe("Classify URLs", function () {
     new QueryTest({
       url: "https://github.com/realpython/materials/blob/master/python-eval-mathrepl/mathrepl.py",
       expectType: QUERY_TYPES.FILE,
-      expectSrcCodeUrl:
-        "https://github.com/realpython/materials/blob/master/python-eval-mathrepl/mathrepl.py",
+      expectSrcCodeUrl: "same",
       expectDownloadCallback: true,
     }),
     new QueryTest({
       url: "https://github.com/realpython/materials/blob/d10ccf9e4451c1dbe99d9d3d06ea794bcb90188f/python-eval-mathrepl/mathrepl.py",
       expectType: QUERY_TYPES.FILE,
-      expectSrcCodeUrl:
-        "https://github.com/realpython/materials/blob/d10ccf9e4451c1dbe99d9d3d06ea794bcb90188f/python-eval-mathrepl/mathrepl.py",
+      expectSrcCodeUrl: "same",
       expectDownloadCallback: true,
     }),
     new QueryTest({
       url: "https://github.com/realpython/dockerizing-django/tree/d3dc0dd9d2450f51c75337083edcdd4597f4ec1d",
       expectType: QUERY_TYPES.SUBDIR,
-      expectSrcCodeUrl:
-        "https://github.com/realpython/dockerizing-django/tree/d3dc0dd9d2450f51c75337083edcdd4597f4ec1d",
+      expectSrcCodeUrl: "same",
       expectDownloadCallback: true,
     }),
     new QueryTest({
       url: "generator",
       expectType: Error,
-      expectSrcCodeUrl: Error,
-      expectDownloadCallback: Error,
     }),
     new QueryTest({
       url: "https://hackhub.com/rahmonov/alcazar",
-      expectType: Error,
-      expectSrcCodeUrl: Error,
-      expectDownloadCallback: Error,
+      expectType: UnsupportedHost,
     }),
     // new QueryTest({
     //   url: "",
@@ -116,52 +124,65 @@ describe("Classify URLs", function () {
     //   expectDownloadCallback: true,
     // }),
   ];
-
-  tests.forEach((test) => {
-    it(`${test.url} should be type ${test.expectType}`, function () {
-      global.window = getWindowWithUrlQuery(test.url);
-      if (test.expectType == Error) {
-        assert.throws(function () {
-          new MaterialsQuery();
-        }, test.expectType);
-      } else {
-        assert.equal(new MaterialsQuery().type, test.expectType);
-      }
-    });
-
-    it(`${test.url} should have source download link of ${test.expectSrcCodeUrl}`, async function () {
-      global.window = getWindowWithUrlQuery(test.url);
-      if (test.expectType == Error) {
-        assert.rejects(async function () {
-          await new MaterialsQuery().getSourceCodeLink();
+  for (const test of tests) {
+    describe(`${test.url}`, function () {
+      if (Error.isPrototypeOf(test.expectType) || Error === test.expectType) {
+        it(`Should throw error on initialization`, function () {
+          global.window = getWindowWithUrlQuery(test.url);
+          assert.throws(function () {
+            new MaterialsQuery();
+          }, test.expectType);
         });
-      } else if (test.expectSrcCodeUrl !== null) {
-        assert.equal(
-          await new MaterialsQuery().getSourceCodeLink(),
-          test.expectSrcCodeUrl
-        );
       } else {
-        assert.equal(
-          await new MaterialsQuery().getSourceCodeLink(),
-          test.expectSrcCodeUrl
-        );
-      }
-    });
+        it(`Should be type ${test.expectType}`, function () {
+          global.window = getWindowWithUrlQuery(test.url);
+          assert.equal(new MaterialsQuery().type, test.expectType);
+        });
 
-    it(`${test.url} SHOULD${
-      test.expectDownloadCallback ? " " : " NOT "
-    }have download callback`, function () {
-      global.window = getWindowWithUrlQuery(test.url);
-      if (test.expectDownloadCallback == Error) {
-        assert.throws(function () {
-          new MaterialsQuery();
-        }, Error);
-      } else {
-        assert.strictEqual(
-          new MaterialsQuery().downloadCallback instanceof Function,
-          test.expectDownloadCallback
-        );
+        if (
+          Error.isPrototypeOf(test.expectSrcCodeUrl) ||
+          Error === test.expectSrcCodeUrl
+        ) {
+          it(`Should throw error on fetching srcCodeLink`, async function () {
+            global.window = getWindowWithUrlQuery(test.url);
+
+            assert.rejects(async function () {
+              await new MaterialsQuery().getSourceCodeLink();
+            });
+          });
+        } else {
+          if (test.expectSrcCodeUrl === "same") {
+            it(`Should have same source code download link`, async function () {
+              global.window = getWindowWithUrlQuery(test.url);
+              assert.equal(
+                // TODO - does this await?
+                await new MaterialsQuery().getSourceCodeLink(),
+                test.url
+              );
+            });
+          } else {
+            it(`Should have source download link of ${test.expectSrcCodeUrl}`, async function () {
+              global.window = getWindowWithUrlQuery(test.url);
+              assert.equal(
+                // TODO - does this really await?
+                await new MaterialsQuery().getSourceCodeLink(),
+                test.expectSrcCodeUrl
+              );
+            });
+          }
+
+          it(`Should${
+            test.expectDownloadCallback ? " " : " NOT "
+          }have download callback`, function () {
+            global.window = getWindowWithUrlQuery(test.url);
+
+            assert.strictEqual(
+              new MaterialsQuery().downloadCallback instanceof Function,
+              test.expectDownloadCallback
+            );
+          });
+        }
       }
     });
-  });
+  }
 });
