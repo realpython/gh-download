@@ -5,7 +5,7 @@ import {
   Query,
 } from "../src/query.js";
 import { JSDOM } from "jsdom";
-import assert from "assert";
+
 import fetch, {
   Blob,
   blobFrom,
@@ -18,6 +18,8 @@ import fetch, {
   Request,
   Response,
 } from "node-fetch";
+
+import assert from "assert/strict";
 
 if (!globalThis.fetch) {
   globalThis.fetch = fetch;
@@ -47,12 +49,22 @@ class QueryTest {
     this.expectDownloadCallback = expectDownloadCallback;
 
     if (
-      (Error.isPrototypeOf(expectType) || expectType === Error) &&
+      (Error.isPrototypeOf(this.expectType) || this.expectType === Error) &&
       (this.expectSrcCodeUrl !== undefined ||
         this.expectDownloadCallback !== undefined)
     ) {
       throw new Error(
         "If fails on initialization no point in expecting srccode or downloadcallback"
+      );
+    }
+
+    if (
+      (Error.isPrototypeOf(this.expectSrcCodeUrl) ||
+        this.expectSrcCodeUrl === Error) &&
+      this.expectDownloadCallback !== undefined
+    ) {
+      throw new Error(
+        "If fails on getting source code url no point in expecting downloadcallback"
       );
     }
 
@@ -117,6 +129,16 @@ describe("Query 'url' parameter", function () {
       url: "https://hackhub.com/rahmonov/alcazar",
       expectType: UnsupportedHost,
     }),
+    new QueryTest({
+      url: "https://github.com/rahmooonov/alcazario",
+      expectType: QUERY_TYPES.BASE_REPO,
+      expectSrcCodeUrl: Error,
+    }),
+    new QueryTest({
+      url: "https://github.com/realpythouououn/materialize/tree/master/python-yaml",
+      expectType: QUERY_TYPES.SUBDIR,
+      expectSrcCodeUrl: Error,
+    }),
     // new QueryTest({
     //   url: "",
     //   expectType: QUERY_TYPES.FILE,
@@ -125,7 +147,9 @@ describe("Query 'url' parameter", function () {
     // }),
   ];
   for (const test of tests) {
-    describe(`${test.url}`, function () {
+    describe(`${test.url}`, async function () {
+      // INITIALIZATION
+      // ==============
       if (Error.isPrototypeOf(test.expectType) || Error === test.expectType) {
         it(`Should throw error on initialization`, function () {
           global.window = getWindowWithUrlQuery(test.url);
@@ -139,6 +163,8 @@ describe("Query 'url' parameter", function () {
           assert.equal(new MaterialsQuery().type, test.expectType);
         });
 
+        // SOURCE CODE LINK
+        // ================
         if (
           Error.isPrototypeOf(test.expectSrcCodeUrl) ||
           Error === test.expectSrcCodeUrl
@@ -146,7 +172,7 @@ describe("Query 'url' parameter", function () {
           it(`Should throw error on fetching srcCodeLink`, async function () {
             global.window = getWindowWithUrlQuery(test.url);
 
-            assert.rejects(async function () {
+            await assert.rejects(async function () {
               await new MaterialsQuery().getSourceCodeLink();
             });
           });
@@ -155,8 +181,7 @@ describe("Query 'url' parameter", function () {
             it(`Should have same source code download link`, async function () {
               global.window = getWindowWithUrlQuery(test.url);
               assert.equal(
-                // TODO - does this await?
-                await new MaterialsQuery().getSourceCodeLink(),
+                (await new MaterialsQuery().getSourceCodeLink()).toString(),
                 test.url
               );
             });
@@ -164,13 +189,14 @@ describe("Query 'url' parameter", function () {
             it(`Should have source download link of ${test.expectSrcCodeUrl}`, async function () {
               global.window = getWindowWithUrlQuery(test.url);
               assert.equal(
-                // TODO - does this really await?
-                await new MaterialsQuery().getSourceCodeLink(),
+                (await new MaterialsQuery().getSourceCodeLink()).toString(),
                 test.expectSrcCodeUrl
               );
             });
           }
 
+          // DOWNLOAD CALLBACK
+          // =================
           it(`Should${
             test.expectDownloadCallback ? " " : " NOT "
           }have download callback`, function () {
