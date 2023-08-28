@@ -9,11 +9,11 @@ export function errorScreen(type) {
 
   const newNote = document.createElement("p");
   if (type == ERROR_TYPE.API_LIMIT) {
-    newNote.innerText = `GitHub download quota exceeded...`;
+    newNote.innerText = `GitHub rate limit exceeded. Please try again in a few minutes or browse the source code via the button below.`;
   } else if (type == ERROR_TYPE.NOT_FOUND) {
     newNote.innerText = "Resource not found...";
   } else {
-    newNote.innerText = `Something went wrong...`;
+    newNote.innerText = `Something went wrong. Please try again in a few minutes or browse the source code via the button below.`;
   }
 
   newNote.classList.add("note");
