@@ -4,22 +4,34 @@ import { hydrateDownloadButton, hydrateSourceCodeButton } from "./buttons.js";
 import { errorScreen } from "./errorScreen.js";
 import { ERROR_TYPE } from "./error.js";
 
+function handleError(e) {
+  if (e.message == ERROR_TYPE.NOT_FOUND) {
+    hydrateSourceCodeButton(FALLBACK_URL);
+    errorScreen(ERROR_TYPE.NOT_FOUND);
+  } else if (e.message == ERROR_TYPE.API_LIMIT) {
+    errorScreen(ERROR_TYPE.API_LIMIT);
+  } else {
+    console.error(e);
+    errorScreen();
+  }
+}
+
 window.onload = async () => {
+  let materialsQuery;
   try {
-    const materialsQuery = new MaterialsQuery();
-    const srcCodeLink = await materialsQuery.getSourceCodeLink();
-    hydrateSourceCodeButton(srcCodeLink);
-    hydrateDownloadButton(materialsQuery.downloadCallback);
+    materialsQuery = new MaterialsQuery();
+  } catch (e) {
+    console.error(e);
+    errorScreen(ERROR_TYPE.INVALID_URL);
+    return;
+  }
+
+  hydrateDownloadButton(() => materialsQuery.download().catch(handleError));
+
+  try {
+    hydrateSourceCodeButton(await materialsQuery.getSourceCodeLink());
     await materialsQuery.download();
   } catch (e) {
-    if (e.message == ERROR_TYPE.API_LIMIT) {
-      errorScreen(ERROR_TYPE.API_LIMIT);
-    } else if (e.message == ERROR_TYPE.NOT_FOUND) {
-      errorScreen(ERROR_TYPE.NOT_FOUND);
-      hydrateSourceCodeButton(FALLBACK_URL);
-    } else {
-      console.log(e);
-      errorScreen();
-    }
+    handleError(e);
   }
 };
