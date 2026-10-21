@@ -144,3 +144,88 @@ describe("Build File URLs", function () {
     );
   });
 });
+
+describe("Edge-case URLs", function () {
+  it("should classify REPO URL with trailing slash", function () {
+    global.window = getWindowWithUrlQuery(
+      "https://github.com/realpython/materials/"
+    );
+    assert.equal(new MaterialsQuery().type, QUERY_TYPES.BASE_REPO);
+  });
+
+  it("should accept www.github.com", function () {
+    global.window = getWindowWithUrlQuery(
+      "https://www.github.com/realpython/materials/tree/master/python-yaml"
+    );
+    assert.equal(new MaterialsQuery().type, QUERY_TYPES.SUBDIR);
+  });
+
+  it("should only classify paths ending in .zip as ZIP", function () {
+    global.window = getWindowWithUrlQuery(
+      "https://github.com/realpython/materials/archive/fooxzip"
+    );
+    assert.throws(() => new MaterialsQuery(), Error);
+  });
+
+  it("should reject a GitHub URL without a repo", function () {
+    global.window = getWindowWithUrlQuery("https://github.com/realpython");
+    assert.throws(() => new MaterialsQuery(), Error);
+  });
+
+  it("should reject a query without a url key", function () {
+    global.window = new JSDOM(``, {
+      url: "https://example.org/?foo=bar",
+    }).window;
+    assert.throws(() => new MaterialsQuery(), Error);
+  });
+
+  it("should have a download callback for every type", function () {
+    for (const url of [
+      "https://github.com/realpython/materials",
+      "https://github.com/realpython/materials/archive/master.zip",
+      "https://github.com/realpython/materials/tree/master/python-yaml",
+      "https://github.com/realpython/materials/blob/master/README.md",
+    ]) {
+      global.window = getWindowWithUrlQuery(url);
+      assert.equal(typeof new MaterialsQuery().downloadCallback, "function");
+    }
+  });
+});
+
+describe("Default branch and names", function () {
+  it("should build an archive URL that follows the default branch", function () {
+    assert.strictEqual(
+      MaterialsQuery.zipUrlFromRepoUrl("https://github.com/realpython/materials/"),
+      "https://github.com/realpython/materials/archive/HEAD.zip"
+    );
+  });
+
+  it("should check repos without assuming a master branch", function () {
+    assert.strictEqual(
+      MaterialsQuery.apiUrlFromZipUrl(
+        "https://github.com/realpython/materials/archive/main.zip"
+      ),
+      "https://api.github.com/repos/realpython/materials"
+    );
+  });
+
+  it("should not end subdir names with a dash on trailing slash", function () {
+    assert.strictEqual(
+      MaterialsQuery.subDirNameFromSubDirUrl(
+        MaterialsQuery.apiUrlFromSubDirUrl(
+          "https://github.com/realpython/materials/tree/master/python-yaml/"
+        )
+      ),
+      "materials-python-yaml"
+    );
+  });
+
+  it("should decode file names", function () {
+    assert.strictEqual(
+      MaterialsQuery.fileNameFromUrl(
+        "https://raw.githubusercontent.com/realpython/materials/master/x/my%20file.py"
+      ),
+      "my file.py"
+    );
+  });
+});

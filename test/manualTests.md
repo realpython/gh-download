@@ -6,7 +6,7 @@ http://127.0.0.1:5500/index.html?url=https%3A%2F%2Fgithub.com%2Frealpython%2Fmat
 http://127.0.0.1:5500/index.html?url=https%3A%2F%2Fgithub.com%2Frealpython%2Fmaterials%2Fblob%2Fd10ccf9e4451c1dbe99d9d3d06ea794bcb90188f%2Fpython-eval-mathrepl%2Fmathrepl.py
 http://127.0.0.1:5500/index.html?url=https%3A%2F%2Fgithub.com%2Frealpython%2Fdockerizing-django%2Ftree%2Fd3dc0dd9d2450f51c75337083edcdd4597f4ec1d
 
-These types of url should be invalid but the "browse source code" button should redirect to them:
+Whole repos download the default branch as a zip (`archive/HEAD.zip`), and `.zip` links download directly. The "browse source code" button points at the repo:
 
 http://127.0.0.1:5500/index.html?url=https%3A%2F%2Fgithub.com%2Frahmonov%2Falcazar
 http://127.0.0.1:5500/index.html?url=https%3A%2F%2Fgithub.com%2Frealpython%2Fdockerizing-django%2Farchive%2Fmaster.zip
@@ -20,7 +20,7 @@ http://127.0.0.1:5500/index.html?url=htt%2Frealpython%2Fmaterials%2Ftree%2Fmaste
 404:
 http://127.0.0.1:5500/index.html?url=https%3A%2F%2Fgithub.com%2FrealpythoONONONn%2Fmaterials%2Ftree%2Fmaster%2Fpython-yaml
 
-These bad links will break the "browse source code" button:
+Repos or zips that don't exist show "not found" and point the "browse source code" button at the materials repo:
 
 http://127.0.0.1:5500/index.html?url=https%3A%2F%2Fgithub.com%2FrahmoOOOOnov%2Falcazar
 http://127.0.0.1:5500/index.html?url=https%3A%2F%2Fgithub.com%2FrealpythOOOOon%2Fdockerizing-django%2Farchive%2Fmaster.zip

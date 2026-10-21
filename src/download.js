@@ -24,7 +24,20 @@
  */
 
 import { MaterialsQuery } from "./query.js";
-import { ERROR_TYPE } from "./error.js";
+import { errorFromResponse } from "./error.js";
+
+/**
+ * `fetch` that throws an `ERROR_TYPE` error on non-2xx responses, so a 404 or
+ * rate-limit page never ends up saved as file contents.
+ * @async
+ * @param {string} url
+ * @returns {Promise<Response>}
+ */
+async function fetchOk(url) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw await errorFromResponse(resp);
+  return resp;
+}
 
 /**
  * Get an array buffer from a raw source.
@@ -32,9 +45,8 @@ import { ERROR_TYPE } from "./error.js";
  * @param {string} url
  * @returns {Promise<ArrayBuffer>}
  */
-async function getFileData(url) {
-  const arrayBuffer = await fetch(url).then((r) => r.arrayBuffer());
-  return arrayBuffer;
+export async function getFileData(url) {
+  return (await fetchOk(url)).arrayBuffer();
 }
 
 /**
@@ -44,24 +56,12 @@ async function getFileData(url) {
  * @param {string} url
  */
 export async function downloadFileFromUrl(url) {
-  await fetch(url)
-    .then((response) => response.blob())
-    .then((blob) => saveAs(blob, MaterialsQuery.fileNameFromUrl(url)));
+  const blob = await (await fetchOk(url)).blob();
+  saveAs(blob, MaterialsQuery.fileNameFromUrl(url));
 }
 
 export async function getContents(url) {
-  const resp = await fetch(url);
-  const json = await resp.json();
-  if (resp.ok === false) {
-    if (json.message.includes("API rate limit exceeded")) {
-      throw new Error(ERROR_TYPE.API_LIMIT);
-    } else if (resp.status == 404) {
-      throw new Error(ERROR_TYPE.NOT_FOUND);
-    } else {
-      throw new Error();
-    }
-  }
-  return json;
+  return (await fetchOk(url)).json();
 }
 
 /**
@@ -69,13 +69,12 @@ export async function getContents(url) {
  * for folder contents, and making requests to the `raw` endpoints for files.
  * @async
  * @param {string} url
- * @param {object} structure
  * @returns {Promise<object>} a `folderStructure`
  */
-async function getFolderStructure(url, structure = null) {
-  if (structure === null) structure = {};
-
+async function getFolderStructure(url) {
+  const structure = {};
   const json = await getContents(url);
+  if (!Array.isArray(json)) throw new Error(`Not a directory: ${url}`);
 
   await Promise.all(
     json.map(async (item) => {
@@ -96,14 +95,11 @@ async function getFolderStructure(url, structure = null) {
  * @param {JSZip} zip
  * @returns {JSZip}
  */
-function buildZipFromFolderStructure(folderStructure, zip = null) {
-  if (zip === null) zip = new JSZip();
-
+function buildZipFromFolderStructure(folderStructure, zip = new JSZip()) {
   Object.entries(folderStructure).forEach(([key, value]) => {
     if (value instanceof ArrayBuffer) {
       zip.file(key, value);
     } else {
-      zip.folder(key);
       buildZipFromFolderStructure(value, zip.folder(key));
     }
   });
@@ -116,21 +112,17 @@ function buildZipFromFolderStructure(folderStructure, zip = null) {
  * @param {string} url
  */
 export async function downloadSubDirFromGitHub(url) {
-  buildZipFromFolderStructure(await getFolderStructure(url))
-    .generateAsync({ type: "blob" })
-    .then(function (content) {
-      saveAs(content, MaterialsQuery.subDirNameFromSubDirUrl(url) + ".zip");
-    });
+  const content = await buildZipFromFolderStructure(
+    await getFolderStructure(url)
+  ).generateAsync({ type: "blob" });
+  saveAs(content, MaterialsQuery.subDirNameFromSubDirUrl(url) + ".zip");
 }
 
 /**
- * Open a link in an invisible IFrame to download it.
- * Only works for GitHub ZIP archives.
+ * Navigate to a URL that GitHub serves as an attachment, which downloads it
+ * without leaving the page. Only works for GitHub ZIP archives.
  * @param {string} url
  */
-export function downloadUrlWithIFrame(url) {
-  const iframe = document.createElement("iframe");
-  iframe.src = url;
-  iframe.style.display = "none";
-  document.body.appendChild(iframe);
+export function downloadUrlDirectly(url) {
+  window.location.assign(url);
 }
