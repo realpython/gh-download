@@ -10,7 +10,8 @@ const GITHUB_API_ENDPOINT = "https://api.github.com/repos";
 const GITHUB_RAW_ENDPOINT = "https://raw.githubusercontent.com";
 const GITHUB_ROOT = "https://github.com";
 const VALID_HOSTS = ["github.com", "www.github.com"];
-// href in link in index.html should be initialized to this
+// href in link in index.html should be initialized to this. Each brand's
+// own fallback is `materialsUrl` in brands.js
 export const FALLBACK_URL = "https://github.com/realpython/materials";
 
 export const QUERY_TYPES = {
