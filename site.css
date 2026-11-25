@@ -23,6 +23,30 @@
   }
 }
 
+/* RealJS (realpython/brands/realjs/brand.json in the CMS), chosen by
+ * brands.js for github.com/realjs/... links */
+:root[data-brand="realjs"] {
+  --heading-color: #2d1b4e;
+  --link-color: #6a4bb5;
+  --note-color: #2d1b4e;
+  --cta: #d6336c;
+  --cta-active: #da487b; /* $cta lightened 5% */
+  --cta-border-bottom: #c72860; /* $cta darkened 5% */
+  --cta-border-bottom-active: #d22a65; /* $cta darkened 2.5% */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-brand="realjs"] {
+    --body-bg: #15111d;
+    --body-color: #d9d3e3;
+    --heading-color: #f0edf5;
+    --link-color: #c4b1ec;
+    --note-bg: rgba(214, 51, 108, 0.18);
+    --note-color: #f0edf5;
+    --note-border: rgba(214, 51, 108, 0.6);
+  }
+}
+
 body{
     background-color: var(--body-bg);
     font-family: source sans pro,-apple-system,BlinkMacSystemFont,segoe ui,Roboto,helvetica neue,Arial,sans-serif,apple color emoji,segoe ui emoji,segoe ui symbol;
@@ -108,7 +132,7 @@ button,
 
 :is(button, #src-code, #back-to-rp):focus-visible {
   outline: 0;
-  box-shadow: 0 0 0 0.2rem rgba(229, 62, 30, 0.5);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--cta) 50%, transparent);
 }
 
 /* Pressed: the bottom border shrinks from 4px to 2px and the top grows to

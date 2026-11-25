@@ -1,12 +1,17 @@
-import { MaterialsQuery, FALLBACK_URL } from "./query.js";
+import { MaterialsQuery } from "./query.js";
+import { applyBrand, brandForUrl } from "./brands.js";
 
 import { hydrateDownloadButton, hydrateSourceCodeButton } from "./buttons.js";
 import { errorScreen } from "./errorScreen.js";
 import { ERROR_TYPE } from "./error.js";
 
+const brand = brandForUrl(
+  new URLSearchParams(window.location.search).get("url")
+);
+
 function handleError(e) {
   if (e.message == ERROR_TYPE.NOT_FOUND) {
-    hydrateSourceCodeButton(FALLBACK_URL);
+    hydrateSourceCodeButton(brand.materialsUrl);
     errorScreen(ERROR_TYPE.NOT_FOUND);
   } else if (e.message == ERROR_TYPE.API_LIMIT) {
     errorScreen(ERROR_TYPE.API_LIMIT);
@@ -17,6 +22,8 @@ function handleError(e) {
 }
 
 window.onload = async () => {
+  applyBrand(document, brand);
+
   let materialsQuery;
   try {
     materialsQuery = new MaterialsQuery();
